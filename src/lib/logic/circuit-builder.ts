@@ -57,6 +57,114 @@ export function buildCircuit(
 
     const leftRes = processNode(node.left, layer);
     const rightRes = processNode(node.right, layer);
+
+    if (node.type === 'IMPLIES') {
+      // Convert P -> Q into !P | Q for the circuit
+      const notId = `gate_not_${gateCounter++}`;
+      const leftVal = evaluateAST(node.left, currentInputs);
+      const notDepth = leftRes.depth + 1;
+
+      nodes.push({
+        id: notId,
+        type: 'NOT',
+        label: 'NOT',
+        x: 0,
+        y: 0,
+        inputs: [leftRes.nodeId],
+        value: !leftVal,
+      });
+
+      const orId = `gate_or_${gateCounter++}`;
+      const orDepth = Math.max(notDepth, rightRes.depth) + 1;
+      const rightVal = evaluateAST(node.right, currentInputs);
+
+      nodes.push({
+        id: orId,
+        type: 'OR',
+        label: 'OR',
+        x: 0,
+        y: 0,
+        inputs: [notId, rightRes.nodeId],
+        value: !leftVal || rightVal,
+      });
+
+      return { nodeId: orId, depth: orDepth };
+    }
+    
+    if (node.type === 'IFF') {
+      // Convert A <=> B into (A & B) | (!A & !B) for the circuit
+      
+      const leftVal = evaluateAST(node.left, currentInputs);
+      const rightVal = evaluateAST(node.right, currentInputs);
+
+      // A & B
+      const andId1 = `gate_and_${gateCounter++}`;
+      const andDepth1 = Math.max(leftRes.depth, rightRes.depth) + 1;
+      nodes.push({
+        id: andId1,
+        type: 'AND',
+        label: 'AND',
+        x: 0,
+        y: 0,
+        inputs: [leftRes.nodeId, rightRes.nodeId],
+        value: leftVal && rightVal,
+      });
+
+      // !A
+      const notIdA = `gate_not_${gateCounter++}`;
+      const notDepthA = leftRes.depth + 1;
+      nodes.push({
+        id: notIdA,
+        type: 'NOT',
+        label: 'NOT',
+        x: 0,
+        y: 0,
+        inputs: [leftRes.nodeId],
+        value: !leftVal,
+      });
+
+      // !B
+      const notIdB = `gate_not_${gateCounter++}`;
+      const notDepthB = rightRes.depth + 1;
+      nodes.push({
+        id: notIdB,
+        type: 'NOT',
+        label: 'NOT',
+        x: 0,
+        y: 0,
+        inputs: [rightRes.nodeId],
+        value: !rightVal,
+      });
+
+      // !A & !B
+      const andId2 = `gate_and_${gateCounter++}`;
+      const andDepth2 = Math.max(notDepthA, notDepthB) + 1;
+      nodes.push({
+        id: andId2,
+        type: 'AND',
+        label: 'AND',
+        x: 0,
+        y: 0,
+        inputs: [notIdA, notIdB],
+        value: (!leftVal) && (!rightVal),
+      });
+
+      // (A & B) | (!A & !B)
+      const orId = `gate_or_${gateCounter++}`;
+      const orDepth = Math.max(andDepth1, andDepth2) + 1;
+      nodes.push({
+        id: orId,
+        type: 'OR',
+        label: 'OR',
+        x: 0,
+        y: 0,
+        inputs: [andId1, andId2],
+        value: (leftVal && rightVal) || ((!leftVal) && (!rightVal)),
+      });
+
+      return { nodeId: orId, depth: orDepth };
+    }
+
     const gateDepth = Math.max(leftRes.depth, rightRes.depth) + 1;
     const id = `gate_${node.type.toLowerCase()}_${gateCounter++}`;
 

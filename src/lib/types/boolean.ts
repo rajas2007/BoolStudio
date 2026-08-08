@@ -1,4 +1,4 @@
-export type OperatorType = '&' | '|' | '!' | '^';
+export type OperatorType = '&' | '|' | '!' | '^' | 'NAND' | 'NOR' | 'XNOR' | '->' | '<=>';
 
 export interface Token {
   type: 'VARIABLE' | 'OPERATOR' | 'LPAREN' | 'RPAREN';
@@ -11,7 +11,12 @@ export type ASTNode =
   | { type: 'NOT'; child: ASTNode }
   | { type: 'AND'; left: ASTNode; right: ASTNode }
   | { type: 'OR'; left: ASTNode; right: ASTNode }
-  | { type: 'XOR'; left: ASTNode; right: ASTNode };
+  | { type: 'XOR'; left: ASTNode; right: ASTNode }
+  | { type: 'NAND'; left: ASTNode; right: ASTNode }
+  | { type: 'NOR'; left: ASTNode; right: ASTNode }
+  | { type: 'XNOR'; left: ASTNode; right: ASTNode }
+  | { type: 'IMPLIES'; left: ASTNode; right: ASTNode }
+  | { type: 'IFF'; left: ASTNode; right: ASTNode };
 
 export interface TruthTableRow {
   id: number;
@@ -63,7 +68,7 @@ export interface SimplificationStep {
 
 export interface CircuitNode {
   id: string;
-  type: 'INPUT' | 'AND' | 'OR' | 'NOT' | 'XOR' | 'OUTPUT';
+  type: 'INPUT' | 'AND' | 'OR' | 'NOT' | 'XOR' | 'NAND' | 'NOR' | 'XNOR' | 'OUTPUT';
   label: string;
   x: number;
   y: number;
@@ -94,6 +99,7 @@ export interface BooleanAnalysisResult {
   variables: string[];
   ast?: ASTNode;
   truthTable?: TruthTableData;
+  classification?: 'Tautology' | 'Contradiction' | 'Contingency';
   circuit?: CircuitData;
   kmap?: KMapData;
   simplificationSteps?: SimplificationStep[];

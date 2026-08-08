@@ -18,8 +18,20 @@ export function simplifyBoolean(
     description: 'Initial parsed input expression.',
   });
 
-  // Step 2: Apply Double Negation & Negation Rules
+  // Step 2: Normalize special gates (NAND, NOR, XNOR, IMPLIES)
   let currentAST = ast;
+  const { ast: normalizedAST, changed: normalizedChanged } = normalizeSpecialGates(currentAST);
+  if (normalizedChanged) {
+    currentAST = normalizedAST;
+    steps.push({
+      stepNumber: stepCount++,
+      expression: formatAST(currentAST),
+      lawApplied: 'Gate Normalization',
+      description: 'Converted special gates into fundamental AND, OR, and NOT operations.',
+    });
+  }
+
+  // Step 3: Apply Double Negation & Negation Rules
   const { ast: step1AST, changed: changed1 } = applyDoubleNegation(currentAST);
   if (changed1) {
     currentAST = step1AST;
@@ -91,9 +103,79 @@ function formatAST(node: ASTNode): string {
       return `(${formatAST(node.left)} | ${formatAST(node.right)})`;
     case 'XOR':
       return `(${formatAST(node.left)} ^ ${formatAST(node.right)})`;
+    case 'NAND':
+      return `(${formatAST(node.left)} NAND ${formatAST(node.right)})`;
+    case 'NOR':
+      return `(${formatAST(node.left)} NOR ${formatAST(node.right)})`;
+    case 'XNOR':
+      return `(${formatAST(node.left)} XNOR ${formatAST(node.right)})`;
+    case 'IMPLIES':
+      return `(${formatAST(node.left)} -> ${formatAST(node.right)})`;
+    case 'IFF':
+      return `(${formatAST(node.left)} <=> ${formatAST(node.right)})`;
     default:
       return '';
   }
+}
+
+function normalizeSpecialGates(node: ASTNode): { ast: ASTNode; changed: boolean } {
+  if (node.type === 'VARIABLE') {
+    return { ast: node, changed: false };
+  }
+  
+  if (node.type === 'NOT') {
+    const childRes = normalizeSpecialGates(node.child);
+    return { ast: { type: 'NOT', child: childRes.ast }, changed: childRes.changed };
+  }
+
+  // It's a binary node
+  const leftRes = normalizeSpecialGates(node.left);
+  const rightRes = normalizeSpecialGates(node.right);
+  const childrenChanged = leftRes.changed || rightRes.changed;
+
+  if (node.type === 'NAND') {
+    return {
+      ast: { type: 'NOT', child: { type: 'AND', left: leftRes.ast, right: rightRes.ast } },
+      changed: true,
+    };
+  }
+  if (node.type === 'NOR') {
+    return {
+      ast: { type: 'NOT', child: { type: 'OR', left: leftRes.ast, right: rightRes.ast } },
+      changed: true,
+    };
+  }
+  if (node.type === 'XNOR') {
+    return {
+      ast: { type: 'NOT', child: { type: 'XOR', left: leftRes.ast, right: rightRes.ast } },
+      changed: true,
+    };
+  }
+  if (node.type === 'IMPLIES') {
+    return {
+      ast: { type: 'OR', left: { type: 'NOT', child: leftRes.ast }, right: rightRes.ast },
+      changed: true,
+    };
+  }
+  if (node.type === 'IFF') {
+    return {
+      ast: {
+        type: 'OR',
+        left: { type: 'AND', left: leftRes.ast, right: rightRes.ast },
+        right: {
+          type: 'AND',
+          left: { type: 'NOT', child: leftRes.ast },
+          right: { type: 'NOT', child: rightRes.ast },
+        },
+      },
+      changed: true,
+    };
+  }
+
+  return {
+    ast: { ...node, left: leftRes.ast, right: rightRes.ast } as ASTNode,
+    changed: childrenChanged,
+  };
 }
 
 function applyDoubleNegation(node: ASTNode): { ast: ASTNode; changed: boolean } {
@@ -106,11 +188,11 @@ function applyDoubleNegation(node: ASTNode): { ast: ASTNode; changed: boolean } 
     const childRes = applyDoubleNegation(node.child);
     return { ast: { type: 'NOT', child: childRes.ast }, changed: childRes.changed };
   }
-  if (node.type === 'AND' || node.type === 'OR' || node.type === 'XOR') {
+  if (node.type === 'AND' || node.type === 'OR' || node.type === 'XOR' || node.type === 'NAND' || node.type === 'NOR' || node.type === 'XNOR' || node.type === 'IMPLIES' || node.type === 'IFF') {
     const leftRes = applyDoubleNegation(node.left);
     const rightRes = applyDoubleNegation(node.right);
     return {
-      ast: { type: node.type, left: leftRes.ast, right: rightRes.ast },
+      ast: { ...node, left: leftRes.ast, right: rightRes.ast } as ASTNode,
       changed: leftRes.changed || rightRes.changed,
     };
   }
@@ -131,11 +213,11 @@ function applyDeMorgan(node: ASTNode): { ast: ASTNode; changed: boolean } {
     }
   }
 
-  if (node.type === 'AND' || node.type === 'OR' || node.type === 'XOR') {
+  if (node.type === 'AND' || node.type === 'OR' || node.type === 'XOR' || node.type === 'NAND' || node.type === 'NOR' || node.type === 'XNOR' || node.type === 'IMPLIES' || node.type === 'IFF') {
     const leftRes = applyDeMorgan(node.left);
     const rightRes = applyDeMorgan(node.right);
     return {
-      ast: { type: node.type, left: leftRes.ast, right: rightRes.ast },
+      ast: { ...node, left: leftRes.ast, right: rightRes.ast } as ASTNode,
       changed: leftRes.changed || rightRes.changed,
     };
   }
@@ -144,7 +226,7 @@ function applyDeMorgan(node: ASTNode): { ast: ASTNode; changed: boolean } {
 }
 
 function applyIdentityAndComplement(node: ASTNode): { ast: ASTNode; changed: boolean } {
-  if (node.type === 'AND' || node.type === 'OR' || node.type === 'XOR') {
+  if (node.type === 'AND' || node.type === 'OR' || node.type === 'XOR' || node.type === 'NAND' || node.type === 'NOR' || node.type === 'XNOR' || node.type === 'IMPLIES' || node.type === 'IFF') {
     const leftRes = applyIdentityAndComplement(node.left);
     const rightRes = applyIdentityAndComplement(node.right);
     
@@ -157,7 +239,7 @@ function applyIdentityAndComplement(node: ASTNode): { ast: ASTNode; changed: boo
     }
 
     return {
-      ast: { type: node.type, left: leftRes.ast, right: rightRes.ast },
+      ast: { ...node, left: leftRes.ast, right: rightRes.ast } as ASTNode,
       changed: leftRes.changed || rightRes.changed,
     };
   }
@@ -176,10 +258,10 @@ function areNodesEqual(a: ASTNode, b: ASTNode): boolean {
   if (a.type === 'VARIABLE' && b.type === 'VARIABLE') return a.name === b.name;
   if (a.type === 'NOT' && b.type === 'NOT') return areNodesEqual(a.child, b.child);
   if (
-    (a.type === 'AND' || a.type === 'OR' || a.type === 'XOR') &&
-    (b.type === 'AND' || b.type === 'OR' || b.type === 'XOR')
+    (a.type === 'AND' || a.type === 'OR' || a.type === 'XOR' || a.type === 'NAND' || a.type === 'NOR' || a.type === 'XNOR' || a.type === 'IMPLIES' || a.type === 'IFF') &&
+    (b.type === 'AND' || b.type === 'OR' || b.type === 'XOR' || b.type === 'NAND' || b.type === 'NOR' || b.type === 'XNOR' || b.type === 'IMPLIES' || b.type === 'IFF')
   ) {
-    return areNodesEqual(a.left, b.left) && areNodesEqual(a.right, b.right);
+    return areNodesEqual((a as any).left, (b as any).left) && areNodesEqual((a as any).right, (b as any).right);
   }
   return false;
 }

@@ -8,16 +8,30 @@ import { Play, AlertCircle, CheckCircle2, Sparkles, HelpCircle, Share2, Check } 
 const PRESET_EXAMPLES = [
   { label: 'Basic AND/NOT', expr: '(A & B) | (!C)' },
   { label: 'XOR Gate', expr: 'A ^ B' },
+  { label: 'NAND Gate', expr: 'A NAND B' },
+  { label: 'NOR Gate', expr: 'A NOR B' },
+  { label: 'Implication', expr: 'A -> B' },
+  { label: 'Biconditional', expr: 'A <=> B' },
   { label: 'De Morgan Demo', expr: '!(A | B)' },
-  { label: '3-Variable SOP', expr: '(A & B) | (B & C) | (A & C)' },
   { label: '4-Variable Circuit', expr: '(A & B) | (!C & D)' },
 ];
 
-const OPERATORS = [
+const LOGIC_GATES = [
   { symbol: '&', label: 'AND', description: 'Conjunction (Shift+7)' },
   { symbol: '|', label: 'OR', description: 'Disjunction (Shift+\\)' },
   { symbol: '!', label: 'NOT', description: 'Negation (Shift+1)' },
   { symbol: '^', label: 'XOR', description: 'Exclusive OR (Shift+6)' },
+  { symbol: 'NAND', label: 'NAND', description: 'Not AND' },
+  { symbol: 'NOR', label: 'NOR', description: 'Not OR' },
+  { symbol: 'XNOR', label: 'XNOR', description: 'Exclusive NOR' },
+];
+
+const PROPOSITIONAL_OPS = [
+  { symbol: '->', label: 'IMPLIES', description: 'Implication' },
+  { symbol: '<=>', label: 'IFF', description: 'Biconditional' },
+];
+
+const GROUPING_OPS = [
   { symbol: '(', label: '(', description: 'Open parenthesis' },
   { symbol: ')', label: ')', description: 'Close parenthesis' },
 ];
@@ -104,7 +118,7 @@ export function ExpressionInput() {
               {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Share2 className="w-3.5 h-3.5 text-indigo-400" />}
               <span>{copied ? 'Link Copied!' : 'Share Link'}</span>
             </button>
-            <span className="hidden sm:inline text-xs text-slate-500 font-mono">Supported: & | ! ^ ( )</span>
+            <span className="hidden sm:inline text-xs text-slate-500 font-mono">Supported: & | ! ^ NAND NOR XNOR -{'>'} {'<=>'} ( )</span>
           </div>
         </div>
 
@@ -141,19 +155,51 @@ export function ExpressionInput() {
         </form>
 
         {/* Quick Operator Insertion Toolbar */}
-        <div className="flex flex-wrap items-center gap-2 pt-1">
-          <span className="text-xs font-mono text-slate-400 mr-1">Insert Operator:</span>
-          {OPERATORS.map((op) => (
-            <button
-              key={op.symbol}
-              type="button"
-              onClick={() => insertSymbol(op.symbol)}
-              title={op.description}
-              className="px-3 py-1.5 rounded-lg bg-slate-800/80 hover:bg-indigo-600/30 text-indigo-300 border border-slate-700 hover:border-indigo-500/50 font-mono text-sm font-bold transition-colors"
-            >
-              {op.symbol} <span className="text-[10px] font-sans text-slate-400 font-normal ml-0.5">({op.label})</span>
-            </button>
-          ))}
+        <div className="flex flex-col gap-3 pt-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-mono text-slate-400 mr-2 w-32">Logic Gates</span>
+            {LOGIC_GATES.map((op) => (
+              <button
+                key={op.symbol}
+                type="button"
+                onClick={() => insertSymbol(op.symbol)}
+                title={op.description}
+                className="px-3 py-1.5 rounded-lg bg-slate-800/80 hover:bg-indigo-600/30 text-indigo-300 border border-slate-700 hover:border-indigo-500/50 font-mono text-sm font-bold transition-colors"
+              >
+                {op.symbol} <span className="text-[10px] font-sans text-slate-400 font-normal ml-0.5">({op.label})</span>
+              </button>
+            ))}
+          </div>
+          
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-mono text-slate-400 mr-2 w-32">Propositional Logic</span>
+            {PROPOSITIONAL_OPS.map((op) => (
+              <button
+                key={op.symbol}
+                type="button"
+                onClick={() => insertSymbol(op.symbol)}
+                title={op.description}
+                className="px-3 py-1.5 rounded-lg bg-slate-800/80 hover:bg-emerald-600/30 text-emerald-300 border border-slate-700 hover:border-emerald-500/50 font-mono text-sm font-bold transition-colors"
+              >
+                {op.symbol} <span className="text-[10px] font-sans text-slate-400 font-normal ml-0.5">({op.label})</span>
+              </button>
+            ))}
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-mono text-slate-400 mr-2 w-32">Grouping</span>
+            {GROUPING_OPS.map((op) => (
+              <button
+                key={op.symbol}
+                type="button"
+                onClick={() => insertSymbol(op.symbol)}
+                title={op.description}
+                className="px-3 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-600/30 text-slate-300 border border-slate-700 hover:border-slate-500/50 font-mono text-sm font-bold transition-colors"
+              >
+                {op.symbol}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Status / Error Banner */}

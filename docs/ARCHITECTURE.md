@@ -13,11 +13,13 @@ graph TD
     Parser --> KMap[K-Map Solver]
     Parser --> Simp[Boolean Simplifier]
     Parser --> Circuit[SVG Circuit Builder]
+    Engine --> Analysis[Logic Analysis Engine]
     Evaluator --> Store[Zustand State Store]
     TT --> Store
     KMap --> Store
     Simp --> Store
     Circuit --> Store
+    Analysis --> Store
     Store --> |Reactive State| UI
 ```
 

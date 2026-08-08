@@ -17,6 +17,16 @@ export function evaluateAST(node: ASTNode, values: Record<string, boolean>): boo
       return evaluateAST(node.left, values) || evaluateAST(node.right, values);
     case 'XOR':
       return evaluateAST(node.left, values) !== evaluateAST(node.right, values);
+    case 'NAND':
+      return !(evaluateAST(node.left, values) && evaluateAST(node.right, values));
+    case 'NOR':
+      return !(evaluateAST(node.left, values) || evaluateAST(node.right, values));
+    case 'XNOR':
+      return evaluateAST(node.left, values) === evaluateAST(node.right, values);
+    case 'IMPLIES':
+      return !evaluateAST(node.left, values) || evaluateAST(node.right, values);
+    case 'IFF':
+      return evaluateAST(node.left, values) === evaluateAST(node.right, values);
     default:
       return false;
   }

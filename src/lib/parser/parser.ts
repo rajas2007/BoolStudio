@@ -18,40 +18,66 @@ export function parse(tokens: Token[]): ASTNode {
     return t;
   }
 
-  // Expression -> XorExpr ('|' XorExpr)*
+  // IffExpr -> ImpliesExpr (('<=>') ImpliesExpr)*
+  function parseIff(): ASTNode {
+    let left = parseImplies();
+
+    while (peek() && peek()?.type === 'OPERATOR' && peek()?.value === '<=>') {
+      consume(); // consume '<=>'
+      const right = parseImplies();
+      left = { type: 'IFF', left, right };
+    }
+
+    return left;
+  }
+
+  // ImpliesExpr -> OrExpr ('->' OrExpr)*
+  function parseImplies(): ASTNode {
+    let left = parseOr();
+
+    while (peek() && peek()?.type === 'OPERATOR' && peek()?.value === '->') {
+      consume(); // consume '->'
+      const right = parseOr();
+      left = { type: 'IMPLIES', left, right };
+    }
+
+    return left;
+  }
+
+  // OrExpr -> XorExpr (('|' | 'NOR') XorExpr)*
   function parseOr(): ASTNode {
     let left = parseXor();
 
-    while (peek() && peek()?.type === 'OPERATOR' && peek()?.value === '|') {
-      consume(); // consume '|'
+    while (peek() && peek()?.type === 'OPERATOR' && (peek()?.value === '|' || peek()?.value === 'NOR')) {
+      const op = consume().value;
       const right = parseXor();
-      left = { type: 'OR', left, right };
+      left = { type: op === '|' ? 'OR' : 'NOR', left, right };
     }
 
     return left;
   }
 
-  // XorExpr -> AndExpr ('^' AndExpr)*
+  // XorExpr -> AndExpr (('^' | 'XNOR') AndExpr)*
   function parseXor(): ASTNode {
     let left = parseAnd();
 
-    while (peek() && peek()?.type === 'OPERATOR' && peek()?.value === '^') {
-      consume(); // consume '^'
+    while (peek() && peek()?.type === 'OPERATOR' && (peek()?.value === '^' || peek()?.value === 'XNOR')) {
+      const op = consume().value;
       const right = parseAnd();
-      left = { type: 'XOR', left, right };
+      left = { type: op === '^' ? 'XOR' : 'XNOR', left, right };
     }
 
     return left;
   }
 
-  // AndExpr -> UnaryExpr ('&' UnaryExpr)*
+  // AndExpr -> UnaryExpr (('&' | 'NAND') UnaryExpr)*
   function parseAnd(): ASTNode {
     let left = parseUnary();
 
-    while (peek() && peek()?.type === 'OPERATOR' && peek()?.value === '&') {
-      consume(); // consume '&'
+    while (peek() && peek()?.type === 'OPERATOR' && (peek()?.value === '&' || peek()?.value === 'NAND')) {
+      const op = consume().value;
       const right = parseUnary();
-      left = { type: 'AND', left, right };
+      left = { type: op === '&' ? 'AND' : 'NAND', left, right };
     }
 
     return left;
@@ -82,7 +108,7 @@ export function parse(tokens: Token[]): ASTNode {
 
     if (token.type === 'LPAREN') {
       consume(); // consume '('
-      const expr = parseOr();
+      const expr = parseIff();
       const nextToken = peek();
       if (!nextToken || nextToken.type !== 'RPAREN') {
         throw new Error('Missing closing parenthesis \')\'.');
@@ -98,7 +124,7 @@ export function parse(tokens: Token[]): ASTNode {
     throw new Error(`Syntax error near '${token.value}'.`);
   }
 
-  const ast = parseOr();
+  const ast = parseIff();
 
   if (current < tokens.length) {
     const extra = tokens[current];

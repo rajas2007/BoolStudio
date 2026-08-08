@@ -6,13 +6,13 @@ interface BooleanStudioState {
   expression: string;
   activeInputValues: Record<string, boolean>;
   analysisResult: BooleanAnalysisResult | null;
-  activeTab: 'truth-table' | 'circuit' | 'kmap' | 'simplification';
+  activeTab: 'truth-table' | 'circuit' | 'kmap' | 'simplification' | 'logic-analysis';
   isEvaluating: boolean;
 
   setExpression: (expr: string) => void;
   setActiveInputValues: (inputs: Record<string, boolean>) => void;
   toggleInputValue: (varName: string) => void;
-  setActiveTab: (tab: 'truth-table' | 'circuit' | 'kmap' | 'simplification') => void;
+  setActiveTab: (tab: 'truth-table' | 'circuit' | 'kmap' | 'simplification' | 'logic-analysis') => void;
   generateAnalysis: (exprToAnalyze?: string) => void;
 }
 

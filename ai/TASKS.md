@@ -4,11 +4,12 @@
 - [x] Create project documentation structure (`docs/` and `ai/` directories)
 - [x] Configure rules and startup/shutdown checklists in [AGENTS.md](file:///C:/Users/shravan/Documents/GitHub/BoolStudio/AGENTS.md)
 - [x] Initialize Next.js 15 (App Router) project with Tailwind CSS, Zustand, and TypeScript
-- [x] Implement Boolean AST tokenizer, recursive descent parser, and evaluator (`src/lib/parser/`)
+- [x] Implement Boolean AST tokenizer, recursive descent parser, and evaluator (`src/lib/parser/`) supporting all standard logic gates, implication, and biconditional.
 - [x] Build Truth Table Generator (`src/lib/truth-table/`) with active row highlights
 - [x] Build interactive SVG Logic Circuit Visualizer (`src/components/LogicCircuit/`) with signal flow pulse animations and clickable input switches
 - [x] Build Gray-code Karnaugh Map engine (`src/lib/kmap/`) with group coloring and max 4 variable rule guard
-- [x] Build step-by-step Boolean Simplifier (`src/lib/simplifier/`) with law explanations
+- [x] Build step-by-step Boolean Simplifier (`src/lib/simplifier/`) with law explanations and gate normalization
+- [x] Build Logic Analysis Tab (`src/components/LogicAnalysis/`) for Tautology/Contradiction classification and Equivalence checks
 - [x] Build UI views: Home (`/`), Workspace (`/workspace`), and About (`/about`)
 - [x] Add Shareable URL Links (`?expr=...`) with copy-to-clipboard button and URL parameter auto-sync
 - [x] Verify production build (`npm run build`)

@@ -7,7 +7,8 @@ import { TruthTable } from '@/components/TruthTable/TruthTable';
 import { LogicCircuit } from '@/components/LogicCircuit/LogicCircuit';
 import { KMap } from '@/components/KMap/KMap';
 import { Simplification } from '@/components/Simplification/Simplification';
-import { Table, Cpu, Grid, GitCommit, AlertCircle } from 'lucide-react';
+import { LogicAnalysis } from '@/components/LogicAnalysis/LogicAnalysis';
+import { Table, Cpu, Grid, GitCommit, AlertCircle, ShieldAlert } from 'lucide-react';
 
 export function WorkspaceView() {
   const { activeTab, setActiveTab, analysisResult } = useBooleanStudio();
@@ -17,6 +18,7 @@ export function WorkspaceView() {
     { id: 'circuit', label: 'Logic Circuit', icon: Cpu },
     { id: 'kmap', label: 'Karnaugh Map', icon: Grid },
     { id: 'simplification', label: 'Simplification', icon: GitCommit },
+    { id: 'logic-analysis', label: 'Logic Analysis', icon: ShieldAlert },
   ] as const;
 
   return (
@@ -70,6 +72,7 @@ export function WorkspaceView() {
             {activeTab === 'circuit' && <LogicCircuit />}
             {activeTab === 'kmap' && <KMap />}
             {activeTab === 'simplification' && <Simplification />}
+            {activeTab === 'logic-analysis' && <LogicAnalysis />}
           </div>
         </div>
       ) : analysisResult && !analysisResult.valid ? (

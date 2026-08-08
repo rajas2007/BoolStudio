@@ -192,7 +192,7 @@ export function LogicCircuit() {
                 </g>
               )}
 
-              {(node.type === 'AND' || node.type === 'OR' || node.type === 'NOT' || node.type === 'XOR') && (
+              {['AND', 'OR', 'NOT', 'XOR', 'NAND', 'NOR', 'XNOR'].includes(node.type) && (
                 <g transform="translate(-30, -25)">
                   {/* Gate Base Box / Shape */}
                   <rect
@@ -227,6 +227,10 @@ export function LogicCircuit() {
                   >
                     val: {node.value ? '1' : '0'}
                   </text>
+                  {/* Inversion Bubble for negative gates */}
+                  {['NOT', 'NAND', 'NOR', 'XNOR'].includes(node.type) && (
+                    <circle cx="64" cy="25" r="4" fill="rgba(30, 41, 59, 0.95)" stroke={node.value ? '#818cf8' : '#475569'} strokeWidth="1.5" />
+                  )}
                 </g>
               )}
             </g>

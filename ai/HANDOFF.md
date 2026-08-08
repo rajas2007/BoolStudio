@@ -6,12 +6,14 @@
 
 ## 🚀 Features Completed
 - [x] Next.js 15 (App Router) project structure initialized with Tailwind CSS, Zustand, and TypeScript.
-- [x] Boolean Tokenizer and AST Recursive Descent Parser (`src/lib/parser/`).
+- [x] Boolean Tokenizer and AST Recursive Descent Parser (`src/lib/parser/`) supporting `&`, `|`, `!`, `^`, `NAND`, `NOR`, `XNOR`, `->`, `=>`, `<=>`, `<->`.
 - [x] Syntax Validator with detailed position-based error messages.
 - [x] Truth Table Generator computing $2^N$ input combinations with active row highlights (`src/lib/truth-table/`).
 - [x] Interactive SVG Logic Gate Circuit Visualizer (`src/lib/logic/` & `src/components/LogicCircuit/`) with live signal propagation & clickable input switches.
 - [x] Karnaugh Map Engine (`src/lib/kmap/`) supporting 2, 3, and 4 variables with Gray-code ordering, minterm group color legends, and 4-variable limit guards.
-- [x] Step-by-Step Boolean Simplifier (`src/lib/simplifier/`) displaying applied Boolean laws (Identity, Complement, De Morgan, Absorption).
+- [x] Step-by-Step Boolean Simplifier (`src/lib/simplifier/`) displaying applied Boolean laws (Identity, Complement, De Morgan, Absorption) and Gate Normalization.
+- [x] Logical Classification (Tautology, Contradiction, Contingency) computed from Truth Table.
+- [x] Logical Equivalence checking and Contraposition (if implication) in the new Logic Analysis tab (`src/components/LogicAnalysis/`).
 - [x] Responsive educational UI pages: Home (`/`), Workspace (`/workspace`), and About (`/about`).
 
 ## 🚧 Features in Progress

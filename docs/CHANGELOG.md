@@ -9,9 +9,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Added
 - Complete Next.js 15 (App Router) client-side application structure for **BoolStudio**.
-- AST Tokenizer and Recursive Descent Parser supporting `&` (AND), `|` (OR), `!` (NOT), `^` (XOR), and `()` (Parentheses).
+- AST Tokenizer and Recursive Descent Parser supporting standard logic gates (`&`, `|`, `!`, `^`) and advanced gates (`NAND`, `NOR`, `XNOR`), along with Implication (`->`, `=>`) and Biconditional / IFF (`<=>`, `<->`).
 - Truth Table Generator computing $2^N$ input combinations with active row highlights.
-- SVG Logic Circuit Visualizer with clickable input switches, live signal pulse animations, and gate layout renderer (AND, OR, NOT, XOR).
+- SVG Logic Circuit Visualizer with clickable input switches, live signal pulse animations, and gate layout renderer supporting all standard gates and simulation of implication and biconditional using basic gates.
 - Karnaugh Map Engine supporting 2, 3, and 4 variables with Gray-code ordering, color-coded minterm group overlays, and a 4-variable limit guard.
-- Step-by-Step Boolean Simplifier displaying applied Boolean laws (Identity, Complement, De Morgan, Absorption).
+- Step-by-Step Boolean Simplifier displaying applied Boolean laws with gate normalization for advanced gates and propositional operators.
+- **Logic Analysis Tab** for evaluating Tautologies, Contradictions, Contingencies, displaying Contraposition, and checking expressions for Logical Equivalence.
+- **Revamped Expression Builder UI** with operator categorizations (Logic Gates, Propositional Logic, Grouping) and quick insertion buttons.
 - Educational UI layout pages (`/`, `/workspace`, `/about`) styled with Slate, Indigo, and Emerald design system.

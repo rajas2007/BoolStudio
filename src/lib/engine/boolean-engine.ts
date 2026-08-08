@@ -36,12 +36,17 @@ export function analyzeBooleanExpression(
     const { steps, minimizedExpression } = simplifyBoolean(ast, trimmed, variables);
     const circuit = buildCircuit(ast, variables, activeInputs);
 
+    const isTautology = truthTable.rows.every((row) => row.output === true);
+    const isContradiction = truthTable.rows.every((row) => row.output === false);
+    const classification = isTautology ? 'Tautology' : isContradiction ? 'Contradiction' : 'Contingency';
+
     return {
       expression: trimmed,
       valid: true,
       variables,
       ast,
       truthTable,
+      classification,
       circuit,
       kmap,
       simplificationSteps: steps,
