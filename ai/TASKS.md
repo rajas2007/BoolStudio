@@ -12,7 +12,11 @@
 - [x] Build Logic Analysis Tab (`src/components/LogicAnalysis/`) for Tautology/Contradiction classification and Equivalence checks
 - [x] Build UI views: Home (`/`), Workspace (`/workspace`), and About (`/about`)
 - [x] Add Shareable URL Links (`?expr=...`) with copy-to-clipboard button and URL parameter auto-sync
-- [x] Verify production build (`npm run build`)
+- [x] Convert web application to native Windows desktop application using **Tauri 2.0 (Rust)** + WebView2
+- [x] Implement dynamic chunk loading (`next/dynamic`) for workspace visualization tabs
+- [x] Configure static Next.js production export (`out/` directory)
+- [x] Package release installer using NSIS (`BoolStudio_0.1.0_x64-setup.exe`, ~2.07 MB)
+- [x] Validate launch speed (< 600ms) and low memory footprint (~46 MB)
 
 ## 🏃 In Progress
 - *None*

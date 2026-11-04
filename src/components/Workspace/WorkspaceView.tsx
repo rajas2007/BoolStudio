@@ -1,14 +1,30 @@
 'use client';
 
 import React, { Suspense } from 'react';
+import dynamic from 'next/dynamic';
 import { useBooleanStudio } from '@/hooks/useBooleanStudio';
 import { ExpressionInput } from '@/components/ExpressionInput/ExpressionInput';
-import { TruthTable } from '@/components/TruthTable/TruthTable';
-import { LogicCircuit } from '@/components/LogicCircuit/LogicCircuit';
-import { KMap } from '@/components/KMap/KMap';
-import { Simplification } from '@/components/Simplification/Simplification';
-import { LogicAnalysis } from '@/components/LogicAnalysis/LogicAnalysis';
 import { Table, Cpu, Grid, GitCommit, AlertCircle, ShieldAlert } from 'lucide-react';
+
+const TruthTable = dynamic(() => import('@/components/TruthTable/TruthTable').then((m) => m.TruthTable), {
+  loading: () => <div className="p-8 text-center text-slate-400 glass-panel rounded-2xl animate-pulse text-sm">Loading Truth Table...</div>,
+});
+
+const LogicCircuit = dynamic(() => import('@/components/LogicCircuit/LogicCircuit').then((m) => m.LogicCircuit), {
+  loading: () => <div className="p-8 text-center text-slate-400 glass-panel rounded-2xl animate-pulse text-sm">Loading Logic Circuit Visualizer...</div>,
+});
+
+const KMap = dynamic(() => import('@/components/KMap/KMap').then((m) => m.KMap), {
+  loading: () => <div className="p-8 text-center text-slate-400 glass-panel rounded-2xl animate-pulse text-sm">Loading Karnaugh Map Solver...</div>,
+});
+
+const Simplification = dynamic(() => import('@/components/Simplification/Simplification').then((m) => m.Simplification), {
+  loading: () => <div className="p-8 text-center text-slate-400 glass-panel rounded-2xl animate-pulse text-sm">Loading Simplification Engine...</div>,
+});
+
+const LogicAnalysis = dynamic(() => import('@/components/LogicAnalysis/LogicAnalysis').then((m) => m.LogicAnalysis), {
+  loading: () => <div className="p-8 text-center text-slate-400 glass-panel rounded-2xl animate-pulse text-sm">Loading Logic Analysis...</div>,
+});
 
 export function WorkspaceView() {
   const { activeTab, setActiveTab, analysisResult } = useBooleanStudio();

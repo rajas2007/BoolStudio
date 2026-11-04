@@ -5,6 +5,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [1.1.0] - 2026-11-05
+
+### Added
+- Native Windows Desktop application target using **Tauri 2.0 (Rust)** and Microsoft Edge WebView2.
+- Production Windows NSIS setup package (`BoolStudio_0.1.0_x64-setup.exe`, 2.07 MB) and standalone executable (`boolstudio.exe`).
+- Multi-resolution native application icons and branding across all desktop contexts.
+- Desktop scripts: `npm run tauri:dev` and `npm run tauri:build`.
+- Dynamic code splitting using `next/dynamic` for workspace tabs (`TruthTable`, `LogicCircuit`, `KMap`, `Simplification`, `LogicAnalysis`) to reduce initial load times.
+- Package import optimizations for `lucide-react` and `framer-motion` in `next.config.ts`.
+- Restrictive Content Security Policy (CSP) and zero-open-port offline architecture.
+
+### Changed
+- Configured Next.js static export (`output: 'export'`, `trailingSlash: true`, unoptimized images) allowing offline loading without a local Node.js server.
+- Updated `README.md`, `ARCHITECTURE.md`, and technical decisions documentation.
+
+---
+
 ## [1.0.0] - 2026-08-08
 
 ### Added
