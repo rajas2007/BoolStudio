@@ -13,6 +13,7 @@ import {
   Palette,
   GitFork,
   Compass,
+  Maximize2,
 } from 'lucide-react';
 
 export function TopicTabs() {
@@ -28,6 +29,7 @@ export function TopicTabs() {
     { id: 'bipartite', label: 'Bipartite & Odd Cycles', icon: Split },
     { id: 'coloring', label: 'Graph Colouring', icon: Palette },
     { id: 'tree', label: 'Tree Detection', icon: GitFork },
+    { id: 'planar', label: 'Planar Graph Bound', icon: Maximize2 },
   ];
 
   return (

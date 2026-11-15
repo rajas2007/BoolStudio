@@ -107,6 +107,17 @@ const HamiltonianPanel = dynamic(
   }
 );
 
+const PlanarPanel = dynamic(
+  () => import('./PlanarPanel').then((m) => m.PlanarPanel),
+  {
+    loading: () => (
+      <div className="p-8 text-center text-slate-400 glass-panel rounded-2xl animate-pulse text-sm">
+        Loading Planar Bound Evaluator...
+      </div>
+    ),
+  }
+);
+
 export function GraphLabView() {
   const { activeTopic } = useGraphLab();
 
@@ -148,6 +159,7 @@ export function GraphLabView() {
           {activeTopic === 'bipartite' && <BipartitePanel />}
           {activeTopic === 'coloring' && <ColoringPanel />}
           {activeTopic === 'tree' && <TreePanel />}
+          {activeTopic === 'planar' && <PlanarPanel />}
         </div>
       </div>
     </div>
