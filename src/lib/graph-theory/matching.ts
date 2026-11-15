@@ -86,7 +86,6 @@ export function computeBipartiteMatching(graph: Graph): MatchingResult {
   const isPerfect = totalVertices > 0 && matchingSize * 2 === totalVertices;
 
   // Hall's Condition Violator search
-  // If |matchA| < |partitionA|, find reachable alternating tree from unmatched vertices in A
   let violatorSetS: string[] | undefined = undefined;
   let neighborSetNS: string[] | undefined = undefined;
 
@@ -115,17 +114,48 @@ export function computeBipartiteMatching(graph: Graph): MatchingResult {
       violatorSetS = Array.from(reachableA);
       neighborSetNS = Array.from(reachableB);
     }
+  } else if (matchingSize < partitionB.length) {
+    // Check for Hall violator in partition B into A
+    const unmatchedB = partitionB.filter((v) => !matchB.has(v));
+    const reachableB = new Set<string>(unmatchedB);
+    const reachableA = new Set<string>();
+
+    const adjB = new Map<string, string[]>();
+    for (const v of partitionB) adjB.set(v, []);
+    for (const [u, vList] of adjA.entries()) {
+      for (const v of vList) {
+        adjB.get(v)?.push(u);
+      }
+    }
+
+    const queue: string[] = [...unmatchedB];
+    while (queue.length > 0) {
+      const v = queue.shift()!;
+      for (const u of adjB.get(v) || []) {
+        if (!reachableA.has(u)) {
+          reachableA.add(u);
+          const matchedBack = matchA.get(u);
+          if (matchedBack !== undefined && !reachableB.has(matchedBack)) {
+            reachableB.add(matchedBack);
+            queue.push(matchedBack);
+          }
+        }
+      }
+    }
+
+    if (reachableA.size < reachableB.size) {
+      violatorSetS = Array.from(reachableB);
+      neighborSetNS = Array.from(reachableA);
+    }
   }
 
   let explanation = '';
   if (isPerfect) {
     explanation = `PERFECT MATCHING FOUND: Size = ${matchingSize}. Every vertex in both partition A (${partitionA.length}) and partition B (${partitionB.length}) is paired with an independent edge with no shared endpoints.`;
-  } else if (matchingSize === partitionA.length && partitionA.length < partitionB.length) {
-    explanation = `MAXIMUM MATCHING: Size = ${matchingSize}. Every vertex in Set A is matched into Set B (complete matching of A into B), but the matching is not perfect because Set B has ${partitionB.length} vertices (|B| > |A|).`;
   } else {
     explanation = `MAXIMUM MATCHING: Size = ${matchingSize} (Not perfect). The largest possible set of mutually non-adjacent edges in this bipartite graph covers ${matchingSize * 2} out of ${totalVertices} vertices.`;
     if (violatorSetS && neighborSetNS) {
-      explanation += ` Hall's Condition is violated: Subset S = {${violatorSetS.length} vertices} has only |N(S)| = ${neighborSetNS.length} neighbors in the opposite partition (|N(S)| < |S|).`;
+      explanation += ` Hall's Condition is violated: Subset S = {${violatorSetS.length} vertices} has only |N(S)| = ${neighborSetNS.length} neighbor(s) in the opposite partition (|N(S)| < |S|).`;
     }
   }
 
