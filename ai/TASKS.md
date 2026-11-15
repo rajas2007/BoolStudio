@@ -1,6 +1,7 @@
 # Task Board
 
 ## 📋 Completed
+- [x] Resolve all ESLint and TypeScript diagnostics across `src/components/GraphLab/Toolbar.tsx`, `src/lib/` (`kmap`, `logic`, `parser`, `simplifier`, `types`), and `src/components/` (0 errors, 0 warnings across whole project).
 - [x] Fix Windows Desktop WebView2 multi-instance crash (0x800700AA) via single-instance Mutex and clean window activation in `src-tauri/src/main.rs`.
 - [x] Streamline Graph Theory Lab UI into a zero-scroll studio viewport:
   - Compact Studio Header & Toolbar (`src/components/GraphLab/Toolbar.tsx`) consolidating title branding, Unit 6 badge, mode tools, $V/E$ counters, conversion toggle, presets dropdown, undo, clear, and inline toasts into a single ~44px row.

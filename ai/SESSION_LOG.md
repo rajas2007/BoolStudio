@@ -1,5 +1,26 @@
 # Session History
 
+## [2026-11-15] - Resolve All Codebase Diagnostics across src & Fix WebView2 Single-Instance Crash
+- **Summary**: Identified and cleanly resolved all ESLint and TypeScript diagnostics across `src/` including `Toolbar.tsx`, `src/lib/` (`kmap`, `logic`, `parser`, `simplifier`, `types`), and `src/components/` (`ExpressionInput`, `LogicCircuit`, `Simplification`). All diagnostics now pass with 0 errors and 0 warnings. Full static Next.js production build (`npx next build`) and 38 unit tests pass without error. In addition, resolved the Windows desktop WebView2 crash (`0x800700AA`) with a Win32 single-instance Mutex (`Local\BoolStudio_SingleInstance_Mutex`) in `src-tauri/src/main.rs`.
+- **Root Cause & Fixes**:
+  - `src/components/GraphLab/Toolbar.tsx`: Unused imports and state setters cleaned; presets array verified and aligned with `PresetName`.
+  - `src/lib/kmap/kmap-generator.ts`: Removed unused parameters `_rowVars` and `_colVars`.
+  - `src/lib/logic/circuit-builder.ts`: Properly typed `CircuitNode.depth?: number` and eliminated unsafe `any` casts.
+  - `src/lib/parser/tokenizer.ts`: Fixed `let startPos` to `const startPos` per `prefer-const`.
+  - `src/lib/simplifier/boolean-simplifier.ts`: Replaced unsafe `any` casts with discriminated AST unions.
+  - `src/lib/types/boolean.ts`: Added missing `StepExplanation` interface.
+  - `src/components/ExpressionInput/ExpressionInput.tsx`: Resolved React Hook `exhaustive-deps` and `set-state-in-effect`.
+  - `src/components/LogicCircuit/LogicCircuit.tsx`: Cleaned unused imports and variables.
+  - `src/components/Simplification/Simplification.tsx`: Removed unused `GitCommit` import.
+- **Verification**:
+  - `npx eslint src` 👉 0 errors, 0 warnings.
+  - `npx tsc --noEmit` 👉 0 errors.
+  - `npx next build` 👉 All routes prerendered successfully.
+  - `cargo check --manifest-path src-tauri/Cargo.toml` 👉 0 errors.
+  - Unit tests: 38/38 passing (11 Graph Theory + 27 Venn & Sets).
+
+---
+
 ## [2026-11-15] - Unit 6: Graph Theory Laboratory Clean Rebuild & Windows Desktop Integration (`feature/graph-theory`)
 - **Summary**: Rebuilt the Graph Theory Laboratory (`/graph-theory`) into a robust, decoupled, and cleanly designed discrete mathematics studio. Decoupled all 9 syllabus topics into pure TypeScript algorithmic functions (`src/lib/graph-theory/`) with zero UI/DOM dependencies returning a standardized `AlgorithmOutput<T>` contract (`{ result, explanation, highlight, steps }`). Designed a single centralized Zustand state store (`src/hooks/useGraphLab.ts`) managing vertices, edges, directed status, undo stack, active highlights, and step-through animation timers. Implemented a hardware-accelerated native SVG canvas with HTML5 pointer capture, smooth vertex dragging without jumps, ghost edge tracking, and synchronized highlighting. Built a comprehensive 11-test headless unit test suite (`src/lib/graph-theory/graph-algorithms.test.ts`) covering all 9 topics on canonical graphs. Compiled and verified the full Tauri 2.0 desktop executable and NSIS setup package.
 - **Studio UI & Zero-Scroll Optimization**:
