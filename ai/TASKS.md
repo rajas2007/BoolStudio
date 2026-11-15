@@ -1,6 +1,16 @@
 # Task Board
 
 ## 📋 Completed
+- [x] Streamline Graph Theory Lab UI into a zero-scroll studio viewport:
+  - Compact Studio Header & Toolbar (`src/components/GraphLab/Toolbar.tsx`) consolidating title branding, Unit 6 badge, mode tools, $V/E$ counters, conversion toggle, presets dropdown, undo, clear, and inline toasts into a single ~44px row.
+  - Horizontal segmented topic tabs (`src/components/GraphLab/TopicTabs.tsx`) tiled across the workspace with concise labels and tooltips, eliminating horizontal truncation.
+  - Matched viewport layout (`src/components/GraphLab/GraphLabView.tsx` & `GraphCanvas.tsx`) locking canvas (~58%) and topic panel (~42%) to standard desktop heights (`h-[560px]`) without page scrolling.
+  - Compact panel components with responsive metric ribbons and streamlined step playback controls.
+- [x] Merge Graph Theory Lab into Venn Diagram branches (`feature/venn-diagram` and `feature/venn-sets`):
+  - Resolved conflicts in `src/components/layout/Navbar.tsx` (linking both Venn & Sets and Graph Lab).
+  - Merged and unified architecture, decisions, changelog, handoff, and session log documentation.
+  - Pushed synced branches to GitHub (`origin/feature/venn-diagram` and `origin/feature/venn-sets`).
+- [x] Rebuild & verify native Windows desktop application and NSIS setup package (`src-tauri/target/release/boolstudio.exe` and `BoolStudio_0.1.0_x64-setup.exe`) embedding both Unit 1 & 3 Venn & Sets Lab and Unit 6 Graph Theory Lab.
 - [x] Fix Venn & Sets Lab logic and redesign UI (`feature/venn-sets`):
   - Single source of truth Set AST parser and evaluator with exact operator precedence and token normalization.
   - Fix bogus error on "A U B" through contextual token lookback.
