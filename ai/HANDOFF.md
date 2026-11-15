@@ -2,7 +2,7 @@
 
 ## 📌 Current Project Status
 - **Current Milestone**: Integrated Educational Labs (Unit 1 & 3: Venn & Sets Lab; Unit 6: Graph Theory Lab) with High-Density Studio Viewport UI and Multi-Platform Windows Desktop Build
-- **Current Branch**: `feature/venn-diagram` (Synced with `feature/venn-sets` and `feature/graph-theory`)
+- **Current Branch**: `feature/venn-diagram` (Integrated release containing Venn & Sets, Graph Theory Lab, studio layout, desktop fixes, and 0-diagnostic code. `feature/venn-sets` remains isolated at commit `08d2e03` containing purely Venn & Sets changes).
 
 ## 🚀 Features & Fixes Completed
 
