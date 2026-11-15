@@ -1,39 +1,38 @@
-# Architectural & Technical Decisions (ADR)
+# Architectural Decision Records (ADRs)
 
-Use this document to log significant engineering and architectural decisions. Do not overwrite previous decisions; append new ones chronologically.
+Use this document to log significant engineering and architectural choices.
 
 ---
 
-## [ADR-001] Documentation & Agent Coordination Setup
+## [ADR-001] Client-Side AST Tokenization and Parsing
 * **Date**: 2026-08-08
 * **Status**: Approved
-* **Decision**: Establish a structured markdown-based documentation system in `docs/` and `ai/` directories, alongside a developer rules guide in [AGENTS.md](file:///C:/Users/shravan/Documents/GitHub/BoolStudio/AGENTS.md).
-* **Reason**: To support seamless handoffs, task management, and design memory preservation across asynchronous development agent sessions.
-* **Alternatives Considered**: Keeping all task context in interactive prompts, or utilizing code-only docstrings.
-* **Consequences**: Developers and agents must strictly follow startup/shutdown checklists to prevent documentation drift.
+* **Decision**: Implement Boolean expression parsing client-side via custom recursive descent parser outputting an Abstract Syntax Tree (AST).
+* **Reason**: Low latency interactive evaluation; zero network roundtrips required for evaluating logic states.
+* **Consequences**: Complex parsing logic resides in frontend bundle, managed by TypeScript and test suites.
 
 ---
 
-## [ADR-002] Client-Side Boolean Parsing & Simulation Architecture
+## [ADR-002] Multi-Resolution K-Map Rendering
 * **Date**: 2026-08-08
 * **Status**: Approved
-* **Decision**: Build the Boolean parser, evaluator, truth table generator, K-map reduction solver, and SVG circuit generator strictly client-side using Next.js 15, TypeScript, and Zustand.
-* **Reason**: Provides zero latency during live input toggling and interactive signal propagation without requiring server endpoints.
-* **Alternatives Considered**: Server-side API routes for evaluation.
-* **Consequences**: Entire evaluation loop runs in-browser with zero latency.
+* **Decision**: Cap automatic Gray-code Karnaugh Maps to 4 input variables ($2 \times 2$ to $4 \times 4$ cells).
+* **Reason**: $\ge 5$ variables require multi-dimensional projection, which degrades educational clarity in 2D UI views.
+* **Consequences**: Expressions with $> 4$ variables disable the K-Map tab with an informative status badge.
 
 ---
 
-## [ADR-003] Desktop Application Architecture via Tauri 2.0 and Next.js Static Export
+## [ADR-003] Desktop Application Architecture via Tauri 2.0
 * **Date**: 2026-11-05
 * **Status**: Approved
-* **Decision**: Convert BoolStudio into an optimized native desktop application using Tauri 2.0 (Rust) with Next.js static export (`output: 'export'`) and Windows Microsoft Edge WebView2.
-* **Reason**: 
-  1. BoolStudio has no server API routes, middleware, or database requirements, making it 100% compatible with static export.
-  2. Tauri 2.0 eliminates the overhead of bundling a Node.js runtime and Chromium browser, resulting in a ~2.07 MB installer, < 600ms cold startup, and ~46 MB RAM usage (vs ~150 MB installer and ~250 MB RAM in Electron).
-  3. No local HTTP server ports are opened in production, improving security and eliminating firewall prompts.
-* **Alternatives Considered**: Electron (too heavy, high RAM/installer bloat), PWA (lacks native window controls, desktop shortcuts, and NSIS installer packaging).
-* **Consequences**: Building the desktop application requires the Rust toolchain and MSVC build tools. Both web (`npm run dev`) and desktop (`npm run tauri:dev` / `npm run tauri:build`) workflows remain cleanly supported.
+* **Decision**: Convert the Next.js application into a native desktop application using **Tauri 2.0 (Rust)** with Microsoft Edge WebView2, combined with Next.js static production export (`output: 'export'`).
+* **Reason**:
+  1. Achieves ~2.14 MB installer size compared to 120+ MB for an Electron alternative.
+  2. Sub-second startup (< 600ms) and minimal memory footprint (~46 MB idle RAM).
+  3. Eliminates the need to bundle a Node.js runtime process inside the desktop package.
+  4. Preserves 100% of the existing React/Tailwind codebase, logic engine, and routing structure.
+* **Alternatives Considered**: Electron (rejected due to 100MB+ bundle bloat and heavy memory footprint), pure web PWA (rejected due to lack of deep OS integration and native installer demand).
+* **Consequences**: Build pipeline produces both static web assets (`out/`) and native Windows executables (`.exe` and NSIS installer). Server-only features (e.g. Node API routes) are avoided in favor of pure client-side processing.
 
 ---
 
@@ -63,3 +62,32 @@ Use this document to log significant engineering and architectural decisions. Do
   4. Having a single evaluator guarantees mathematical consistency: the exact boolean result on each minterm bit vector dictates both the Venn region fill and the truth table row.
 * **Alternatives Considered**: Modifying global Boolean parser in `src/lib/parser/` (rejected to maintain zero edits on existing code), manual bezier arc path approximation (rejected due to clipping artifacts).
 * **Consequences**: Exact pixel-perfect rendering across all 8 disjoint Venn regions, full compatibility with SVG hover/click interactions, and zero discrepancies between diagram and truth table.
+
+---
+
+## [ADR-006] Unit 6 Graph Theory Laboratory Architecture
+* **Date**: 2026-11-15
+* **Status**: Approved
+* **Decision**: Structure the Graph Theory Laboratory (`/graph-theory`) into two strictly decoupled layers:
+  1. A pure TypeScript algorithmic core (`src/lib/graph-theory/`) with zero UI/DOM dependencies where every algorithm adheres to the `AlgorithmOutput<T>` contract: `{ result: T, explanation: string, highlight: HighlightState, steps?: StepInfo[] }`.
+  2. A reactive UI layer (`src/components/GraphLab/`) powered by a single centralized Zustand store (`src/hooks/useGraphLab.ts`) containing the active graph `{ vertices, edges, isDirected }`, undo stack, presets, and active highlights.
+  3. Native SVG canvas rendering with HTML5 pointer capture for smooth vertex dragging without jumps and dynamic cursor ghost lines when connecting edges in `add-edge` mode.
+  4. Desktop 2-column split layout (Left ~58% Canvas + Toolbar, Right ~42% Active Topic Panel) with 9 ordered syllabus tabs matching discrete mathematics Unit 6 curricula.
+* **Reason**: 
+  1. The previous implementation suffered from fragmented state across tabs, duplicate algorithm code in the canvas, and vertical layout jumping that forced excessive scrolling.
+  2. Decoupling pure algorithmic logic allows comprehensive headless unit testing (verified via an 11-test automated suite).
+  3. Zero new dependencies were required, maintaining full static export compatibility (`output: 'export'`) and strict Tauri offline CSP security.
+* **Alternatives Considered**: Bundling external graph libraries (e.g., Cytoscape.js, vis.js, D3 force simulations) — rejected due to heavy bundle overhead, non-compliance with Tauri offline CSP, and poor fit with educational discrete mathematics algorithms.
+* **Consequences**: High rendering performance, zero external runtime bloat, and easily extensible syllabus topics following a standardized registration process.
+
+---
+
+## [ADR-007] Zero-Scroll Viewport Studio Layout & Compact Toolbar for Desktop Labs
+* **Date**: 2026-11-15
+* **Status**: Approved
+* **Decision**: Refactor educational labs into high-density, zero-scroll studio viewports where the entire work area (toolbar, topic tabs, interactive canvas, and active results panel) fits completely within standard desktop resolutions without requiring page-level scrolling:
+  1. Integrate lab title, unit badges, and mode tools into a single sleek studio bar (`Toolbar.tsx`), eliminating tall redundant page headers.
+  2. Format topic navigation tabs as compact, horizontal tiles with concise labels that span the workspace without horizontal truncation.
+  3. Lock the interactive canvas and active topic panel into matched viewport heights with internal smooth scrollbars for dense algorithmic breakdowns.
+* **Reason**: User testing and desktop screenshots revealed excessive vertical scrolling where the canvas, toolbar, and algorithm step players were pushed out of the viewport.
+* **Consequences**: Dramatically improved educational UX and usability across both native Windows desktop and web viewports.

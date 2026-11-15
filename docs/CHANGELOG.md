@@ -5,9 +5,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
-## [Unreleased]
+## [1.2.0] - 2026-11-15
 
 ### Added
+- **Unit 6: Graph Theory Laboratory (`/graph-theory`)**: Complete discrete mathematics laboratory module with single shared Zustand state (`src/hooks/useGraphLab.ts`).
+- **Pure Algorithmic Layer (`src/lib/graph-theory/`)**: Zero-UI, zero-DOM TypeScript functions adhering to the `AlgorithmOutput<T>` contract (`{ result, explanation, highlight, steps }`):
+  - Adjacency and Incidence Matrix builders, Handshaking lemma verifier, matrix power $(A)^k$ walk counter.
+  - Degree calculations, connected components, Tarjan/Kosaraju strongly connected components, BFS shortest path, and cycle detection.
+  - Interactive Walk vs Trail vs Path vs Circuit vs Cycle validator.
+  - Hierholzer's Eulerian circuit/trail solver with step playback frames.
+  - Hamiltonian path and cycle solver with backtracking ($n \le 12$) and Dirac/Ore sufficient theorem checks.
+  - Tree triad validator ({Connected, Acyclic, $|E| = |V| - 1$}), leaf detector, degree sequence, and BFS spanning tree generator.
+  - BFS 2-colouring bipartite detector and Kőnig odd cycle witness extractor.
+  - Bipartite maximum matching solver with augmenting path steps and constructive Hall's Marriage Theorem failure witness subset $S$.
+  - Planar graph edge bound analyzer ($E \le 3V - 6$, $E \le 2V - 4$), Euler polyhedral formula ($V - E + F = 2$), and non-planarity proofs for $K_5$ and $K_{3,3}$.
+  - Vertex coloring engine with Welsh-Powell greedy coloring, exact chromatic number $\chi(G)$ via backtracking ($n \le 10$), clique/degree bounds, and manual coloring conflict detector.
+- **Interactive SVG Canvas**: Hardware-accelerated native SVG canvas with HTML5 pointer capture, smooth vertex dragging without jumps, dynamic ghost edge cursor guide, arrowheads for directed mode, and active highlight synchronization.
+- **Top Toolbar**: Ergonomic toolbar with Select/Move, Add Vertex, Add Edge, Delete, Directed/Undirected conversion toggle, Presets dropdown, Undo history, Clear, and $V = X \mid E = Y$ count badge.
+- **Comprehensive Test Suite (`src/lib/graph-theory/graph-algorithms.test.ts`)**: 11 automated unit tests covering all 9 topics on canonical graphs ($K_4, K_5, K_{3,3}, C_5, C_6$, Petersen, $P_5, K_{1,4}$, Disconnected, self-loops, multi-edges, walks).
 - **Venn & Sets Lab** (`/venn-sets`): Interactive educational laboratory for set theory and the Principle of Inclusion-Exclusion (Units 1 & 3).
   - 2-Set and 3-Set SVG Venn diagram visualization with clickable, keyboard-focusable disjoint region paths and Universal set boundary $U$.
   - Manual region shading mode computing canonical sum-of-minterms / sum-of-regions set expressions in real-time.
@@ -16,10 +31,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   - Principle of Inclusion-Exclusion (PIE) calculator with step-by-step formula substitutions, exact disjoint region decomposition, and consistency violation checks.
   - Interactive classroom word problems with hidden answers and derivations.
   - Bidirectional "Venn ↔ Truth table" minterm linkage highlighting corresponding regions on hover.
-- Navigation entry for "Venn & Sets" in `src/components/layout/Navbar.tsx`.
-- Third-party attribution documentation in `docs/third-party/venn-sets.md`.
+- **Navigation & Architectural Documentation**: Added Graph Lab and Venn & Sets entries to Navbar and comprehensive architecture guide in `README.md`.
+- **Windows Desktop Release Verification**: Validated Tauri 2.0 release compilation (`npm run tauri:build`) bundling the complete application into `src-tauri/target/release/boolstudio.exe` and `BoolStudio_0.1.0_x64-setup.exe` (2.14 MB), with live multi-process WebView2 runtime verification on Windows.
 
 ### Changed
+- **Zero-Scroll Viewport Studio Layout**: Refactored Graph Theory Lab into a high-density, zero-scroll studio viewport where the toolbar, topic tabs, canvas, and active results panel fit within standard desktop resolutions without requiring page-level scrolling.
 - **Venn & Sets Lab UI Redesign**:
   - Implemented 2-column desktop layout (large $\ge 480$px Venn diagram on left, expression input and controls on right).
   - Streamlined Universal Set $U$ container to a single rounded rectangle with top-left italic "U" badge (removed nested inner box and redundant "Outside" label).
@@ -30,14 +46,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   - Enlarged expression input (18px+) with grouped symbol keypads (Sets, Operators, Brackets), natural English explanation, and non-intrusive inline status indicators.
 
 ### Fixed
-- **Single Source of Truth Evaluator & Parser Rewrite**:
-  - Rewrote expression tokenizer and recursive descent parser with strict precedence ($' > \cap > \cup = \triangle = \setminus$) and left-associativity.
-  - Unified input normalization supporting symbols ($\cup, \cap, ', \setminus, \triangle$) and text/ASCII aliases (`"union"`, `"and"`, `|`, `&`, `!`, `~`, `\`, `-`, `^^`).
-  - Fixed false-positive error on "A U B" by contextually disambiguating "U" (union vs universal set).
-  - Precise syntax error diagnosis with exact index mapping in the original input string.
-  - Corrected minterm indexing to standard MSB-first ($A$ is MSB, $C$ is LSB; $m_1 = A'B'C$, $m_4 = AB'C'$), eliminating inverted region shading in the diagram and truth table.
-  - Replaced flawed manual SVG arc paths with exact SVG `<clipPath>` (for bit 1) and `<mask fill="white"><circle fill="black"/></mask>` (for bit 0) boolean composition for all 8 regions (and 4 regions for 2 sets), ensuring pixel-perfect mutually disjoint region fills with circle outlines on top.
-  - Added full test suite with 27 unit tests validating parser cases, hand-computed expected minterm sets, and quick-test invariants.
+- Replaced previous cluttered and broken graph-theory prototype with clean 2-column desktop split layout (Left ~60% Canvas + Toolbar, Right ~40% Active Topic Panel) and 9 ordered syllabus tabs.
+- Replaced stacked non-discrete Venn regions with exact SVG mask cutouts in Venn & Sets Lab.
+- Fixed false-positive error on "A U B" by contextually disambiguating "U" (union vs universal set).
+- Corrected minterm indexing to standard MSB-first ($A$ is MSB, $C$ is LSB; $m_1 = A'B'C$, $m_4 = AB'C'$), eliminating inverted region shading in the diagram and truth table.
+- Replaced flawed manual SVG arc paths with exact SVG `<clipPath>` (for bit 1) and `<mask fill="white"><circle fill="black"/></mask>` (for bit 0) boolean composition for all 8 regions (and 4 regions for 2 sets), ensuring pixel-perfect mutually disjoint region fills with circle outlines on top.
 
 ---
 
@@ -61,12 +74,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [1.0.0] - 2026-08-08
 
 ### Added
-- Complete Next.js 15 (App Router) client-side application structure for **BoolStudio**.
-- AST Tokenizer and Recursive Descent Parser supporting standard logic gates (`&`, `|`, `!`, `^`) and advanced gates (`NAND`, `NOR`, `XNOR`), along with Implication (`->`, `=>`) and Biconditional / IFF (`<=>`, `<->`).
-- Truth Table Generator computing $2^N$ input combinations with active row highlights.
-- SVG Logic Circuit Visualizer with clickable input switches, live signal pulse animations, and gate layout renderer supporting all standard gates and simulation of implication and biconditional using basic gates.
-- Karnaugh Map Engine supporting 2, 3, and 4 variables with Gray-code ordering, color-coded minterm group overlays, and a 4-variable limit guard.
-- Step-by-Step Boolean Simplifier displaying applied Boolean laws with gate normalization for advanced gates and propositional operators.
-- **Logic Analysis Tab** for evaluating Tautologies, Contradictions, Contingencies, displaying Contraposition, and checking expressions for Logical Equivalence.
-- **Revamped Expression Builder UI** with operator categorizations (Logic Gates, Propositional Logic, Grouping) and quick insertion buttons.
-- Educational UI layout pages (`/`, `/workspace`, `/about`) styled with Slate, Indigo, and Emerald design system.
+- Core Boolean AST parser supporting arbitrary expressions.
+- Logic circuit canvas rendering live interactive SVG circuits.
+- Gray-code Karnaugh Map visualization with automatic grouping overlays.
+- Step-by-step Boolean algebraic simplifier displaying applied equivalence laws.
+- Truth table generator with active input highlights.
+- Shareable URLs encoding expression state in query parameters.

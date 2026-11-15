@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Cpu, Play, Info, Home, Layers } from 'lucide-react';
+import { Cpu, Play, Info, Home, Layers, Network } from 'lucide-react';
 
 export function Navbar() {
   const pathname = usePathname();
@@ -12,6 +12,7 @@ export function Navbar() {
     { href: '/', label: 'Home', icon: Home },
     { href: '/workspace', label: 'Workspace', icon: Cpu },
     { href: '/venn-sets', label: 'Venn & Sets', icon: Layers },
+    { href: '/graph-theory', label: 'Graph Lab', icon: Network },
     { href: '/about', label: 'About', icon: Info },
   ];
 
@@ -42,7 +43,7 @@ export function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                   isActive
                     ? 'bg-indigo-600/20 text-indigo-300 border border-indigo-500/30'
                     : 'text-slate-300 hover:text-white hover:bg-slate-800/50'
