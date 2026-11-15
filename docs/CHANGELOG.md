@@ -24,6 +24,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - **Top Toolbar**: Ergonomic toolbar with Select/Move, Add Vertex, Add Edge, Delete, Directed/Undirected conversion toggle, Presets dropdown, Undo history, Clear, and $V = X \mid E = Y$ count badge.
 - **Comprehensive Test Suite (`src/lib/graph-theory/graph-algorithms.test.ts`)**: 11 automated unit tests covering all 9 topics on canonical graphs ($K_4, K_5, K_{3,3}, C_5, C_6$, Petersen, $P_5, K_{1,4}$, Disconnected, self-loops, multi-edges, walks).
 - **Navigation & Architectural Documentation**: Added Graph Lab entry to Navbar and comprehensive architecture guide in `README.md`.
+- **Windows Desktop Release Verification**: Validated Tauri 2.0 release compilation (`npm run tauri:build`) bundling the complete Graph Theory Lab into `src-tauri/target/release/boolstudio.exe` and `BoolStudio_0.1.0_x64-setup.exe` (2.14 MB), with live multi-process WebView2 runtime verification on Windows.
 
 ### Fixed
 - Replaced previous cluttered and broken graph-theory prototype with clean 2-column desktop split layout (Left ~60% Canvas + Toolbar, Right ~40% Active Topic Panel) and 9 ordered syllabus tabs.

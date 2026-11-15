@@ -15,7 +15,7 @@
 - [x] Convert web application to native Windows desktop application using **Tauri 2.0 (Rust)** + WebView2
 - [x] Implement dynamic chunk loading (`next/dynamic`) for workspace visualization tabs
 - [x] Configure static Next.js production export (`out/` directory)
-- [x] Package release installer using NSIS (`BoolStudio_0.1.0_x64-setup.exe`, ~2.07 MB)
+- [x] Package release installer using NSIS (`BoolStudio_0.1.0_x64-setup.exe`, ~2.14 MB)
 - [x] Re-architect and cleanly rebuild Unit 6: Graph Theory Laboratory (`/graph-theory` on branch `feature/graph-theory`):
   - [x] Pure decoupled algorithmic module in `src/lib/graph-theory/` (`AlgorithmOutput<T>` with `{ result, explanation, highlight, steps }`)
   - [x] Auto-assigned vertex labels (A-Z, A1-Z1) with reuse upon deletion and simple graph edge constraints
@@ -24,6 +24,7 @@
   - [x] Desktop 2-column layout (Left ~60% Canvas + Toolbar, Right ~40% Active Panel)
   - [x] All 9 syllabus topics implemented with definitions, "Try Example" presets, step players, and status badges
   - [x] Zero new dependencies, passing static export build (`npm run build`) and ESLint checks.
+- [x] Rebuild & verify native Windows desktop application and NSIS setup package (`src-tauri/target/release/boolstudio.exe` and `BoolStudio_0.1.0_x64-setup.exe`) embedding Unit 6 Graph Theory Lab.
 
 ## 🏃 In Progress
 - *None*

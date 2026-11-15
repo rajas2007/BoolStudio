@@ -31,6 +31,11 @@
   - Left column (~60%) Canvas + Toolbar.
   - Right column (~40%) Active Topic Panel with definition, "Try Example" preset button, status badges, explanations, and step players.
 - [x] **Zero New Dependencies & Strict Next.js Static Export / Tauri CSP Compliance**.
+- [x] **Windows Desktop Release Build & Execution Verification (`src-tauri/`)**:
+  - Full desktop release build compilation (`npm run tauri:build`) bundling Next.js static export with all 5 application routes including `/graph-theory`.
+  - Windows release standalone binary: `src-tauri/target/release/boolstudio.exe` (9.2 MB).
+  - Windows NSIS setup package: `src-tauri/target/release/bundle/nsis/BoolStudio_0.1.0_x64-setup.exe` (2.14 MB).
+  - Live execution verified in user Windows desktop session with active Microsoft Edge WebView2 rendering processes and clean performance.
 
 ## 🚧 Features in Progress
 - None. Unit 6 Graph Theory Laboratory is fully functional, tested, and integrated.

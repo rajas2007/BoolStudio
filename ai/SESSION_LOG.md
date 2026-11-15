@@ -1,7 +1,7 @@
 # Session History
 
 ## [2026-11-15] - Unit 6: Graph Theory Laboratory Clean Architecture & Full Integration
-- **Summary**: Rebuilt the Graph Theory Lab into a clean, modular, and fully integrated "Unit 6: Graph Theory" module on branch `feature/graph-theory`. Decoupled all algorithm logic from UI, introduced single shared state, rebuilt all 9 syllabus topic panels, implemented step players, and verified via an 11-test automated suite and static production export.
+- **Summary**: Rebuilt the Graph Theory Lab into a clean, modular, and fully integrated "Unit 6: Graph Theory" module on branch `feature/graph-theory`. Decoupled all algorithm logic from UI, introduced single shared state, rebuilt all 9 syllabus topic panels, implemented step players, verified via an 11-test automated suite, and compiled/verified the production native Windows Tauri 2.0 desktop executable and NSIS setup package.
 - **Files Changed / Created**:
   - `src/lib/types/graph.ts`: Unified TypeScript contracts for Vertex, Edge, Graph, HighlightState, StepInfo, and all 9 syllabus topic result models.
   - `src/lib/graph-theory/`: Pure algorithmic functions for all 9 topics (zero UI/DOM dependencies):
@@ -31,11 +31,14 @@
   - Full implementation and clean integration of all 9 Unit 6 syllabus topics.
   - Decoupled architecture where canvas and panels receive computed outputs from pure algorithmic functions.
   - Zero new dependencies added, strict Next.js static export (`output: 'export'`), and Tauri CSP compliance.
+  - Full native desktop build compilation (`npm run tauri:build`) producing `boolstudio.exe` and NSIS installer `BoolStudio_0.1.0_x64-setup.exe` (2.14 MB).
+  - Runtime verification on Windows: executed `boolstudio.exe` in interactive user desktop session with Microsoft Edge WebView2 rendering and clean performance.
 - **Testing Status**:
   - Unit tests: 11/11 passed (0 failed).
   - TypeScript: 0 errors (`npx tsc --noEmit`).
   - ESLint: 0 errors, 0 warnings (`npx eslint`).
   - Production build: `npm run build` static export succeeded (prerendered all 7 routes).
+  - Desktop release build: `npm run tauri:build` succeeded with NSIS bundle generation.
   - Dev server HTTP check: `http://localhost:3000/graph-theory/` HTTP 200 OK.
 
 ---
