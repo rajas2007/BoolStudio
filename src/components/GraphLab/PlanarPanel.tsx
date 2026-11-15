@@ -65,6 +65,18 @@ export function PlanarPanel() {
         </div>
       </div>
 
+      {/* Underlying Graph Context Badge */}
+      <div className="flex items-center gap-2 flex-wrap text-xs">
+        <span className="px-2.5 py-1 rounded-lg bg-slate-900/80 border border-slate-800 text-slate-300 font-mono text-[11px]">
+          Underlying simple undirected graph: |V| = {result.order}, |E| = {result.size}
+        </span>
+        {graph.isDirected && (
+          <span className="text-[11px] text-indigo-300">
+            (Evaluated on underlying simple undirected graph; directed edges collapsed)
+          </span>
+        )}
+      </div>
+
       {/* Inequality Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {/* General Bound Card */}

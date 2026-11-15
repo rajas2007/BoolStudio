@@ -135,6 +135,16 @@ This document contains ready-to-paste sections for the shared documentation file
 * **Decision**: Implement Planar Graph evaluation strictly as a necessary edge-bound check (e <= 3v-6 and e <= 2v-4) without complex planarity embedding algorithms, and implement Bipartite Matching via augmenting paths with bidirectional Hall condition violator extraction.
 * **Reason**: Calculating full planarity embeddings requires complex external libraries (e.g. Boyer-Myrvold), which would violate the zero-dependency rule and add bloat. The edge-bound theorem is the exact requirement of Unit 6 syllabus. Augmenting paths provide optimal deterministic matching in O(V * E) time with zero external dependencies.
 * **Consequences**: The UI explicitly clarifies that satisfying the planar bound is a necessary condition, not a sufficient one, using the Petersen graph as a live educational example.
+
+---
+
+## [ADR-007] Hamiltonian Cycle Minimum Order Convention
+* **Date**: 2026-11-15
+* **Status**: Approved
+* **Decision**: Enforce that a Hamiltonian cycle in a simple graph strictly requires at least 3 vertices (|V| ≥ 3). Graphs with |V| = 1 or |V| = 2 connected by an edge possess a valid Hamiltonian path, but no Hamiltonian cycle.
+* **Reason**: By graph-theoretic definition, a cycle in a simple undirected graph consists of at least 3 distinct vertices and distinct edges (length k ≥ 3). A single vertex does not form a 1-cycle (no self-loops in simple graphs), and two vertices joined by an edge do not form a 2-cycle (as traversing back traverses the same undirected edge).
+* **Alternatives Considered**: Defining a single vertex as trivially having a cycle of length 0 or treating a two-vertex edge as a cycle of length 2.
+* **Consequences**: Avoids reporting spurious cycles for trivial graphs; clearly distinguishes paths from cycles in educational diagrams.
 ```
 
 ---

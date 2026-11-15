@@ -18,14 +18,14 @@ export function findHamiltonianPathsAndCycles(graph: Graph): HamiltonianResult {
 
   if (n === 1) {
     return {
-      hasCycle: true,
+      hasCycle: false,
       hasPath: true,
-      cycle: [graph.vertices[0].id],
+      cycle: [],
       cycleEdges: [],
       path: [graph.vertices[0].id],
       pathEdges: [],
       exceedsLimit: false,
-      explanation: 'A single isolated vertex trivially possesses a Hamiltonian path and cycle of length 0.',
+      explanation: 'A single vertex has a trivial Hamiltonian path, but no Hamiltonian cycle (a simple cycle requires at least 3 vertices).',
     };
   }
 
@@ -56,48 +56,47 @@ export function findHamiltonianPathsAndCycles(graph: Graph): HamiltonianResult {
     }
   }
 
-  // 1. Search for Hamiltonian Cycle
+  // 1. Search for Hamiltonian Cycle (a simple cycle requires n >= 3 vertices)
   let foundCycle: string[] | null = null;
   const cycleEdges: string[] = [];
 
-  // In a directed or undirected cycle of length n, every vertex is included.
-  // For undirected, starting at vertex 0 is sufficient. For directed, any cycle must visit vertex 0 if it covers all vertices,
-  // so starting at vertex 0 is sufficient for Hamiltonian cycle detection in all graphs.
-  const startVertex = graph.vertices[0].id;
-  const visitedForCycle = new Set<string>([startVertex]);
-  const cycleStack: string[] = [startVertex];
+  if (n >= 3) {
+    const startVertex = graph.vertices[0].id;
+    const visitedForCycle = new Set<string>([startVertex]);
+    const cycleStack: string[] = [startVertex];
 
-  function searchCycle(curr: string): boolean {
-    if (cycleStack.length === n) {
-      const closingEdge = edgeMap.get(`${curr}->${startVertex}`);
-      if (closingEdge) {
-        foundCycle = [...cycleStack, startVertex];
-        return true;
+    function searchCycle(curr: string): boolean {
+      if (cycleStack.length === n) {
+        const closingEdge = edgeMap.get(`${curr}->${startVertex}`);
+        if (closingEdge) {
+          foundCycle = [...cycleStack, startVertex];
+          return true;
+        }
+        return false;
+      }
+
+      const neighbors = adj.get(curr) || [];
+      for (const next of neighbors) {
+        if (!visitedForCycle.has(next)) {
+          visitedForCycle.add(next);
+          cycleStack.push(next);
+          if (searchCycle(next)) return true;
+          cycleStack.pop();
+          visitedForCycle.delete(next);
+        }
       }
       return false;
     }
 
-    const neighbors = adj.get(curr) || [];
-    for (const next of neighbors) {
-      if (!visitedForCycle.has(next)) {
-        visitedForCycle.add(next);
-        cycleStack.push(next);
-        if (searchCycle(next)) return true;
-        cycleStack.pop();
-        visitedForCycle.delete(next);
+    searchCycle(startVertex);
+
+    if (foundCycle) {
+      for (let i = 0; i < (foundCycle as string[]).length - 1; i++) {
+        const u = (foundCycle as string[])[i];
+        const v = (foundCycle as string[])[i + 1];
+        const eId = edgeMap.get(`${u}->${v}`);
+        if (eId) cycleEdges.push(eId);
       }
-    }
-    return false;
-  }
-
-  searchCycle(startVertex);
-
-  if (foundCycle) {
-    for (let i = 0; i < (foundCycle as string[]).length - 1; i++) {
-      const u = (foundCycle as string[])[i];
-      const v = (foundCycle as string[])[i + 1];
-      const eId = edgeMap.get(`${u}->${v}`);
-      if (eId) cycleEdges.push(eId);
     }
   }
 
@@ -161,7 +160,9 @@ export function findHamiltonianPathsAndCycles(graph: Graph): HamiltonianResult {
   if (hasCycle) {
     explanation = `A Hamiltonian Cycle exists: A closed loop that visits every one of the ${n} vertices exactly once. Because every Hamiltonian cycle contains a Hamiltonian path, both exist.`;
   } else if (hasPath) {
-    explanation = `A Hamiltonian Path exists (open path visiting all ${n} vertices exactly once), but NO Hamiltonian Cycle exists because the path endpoints cannot be closed with an edge.`;
+    explanation = n < 3
+      ? `A Hamiltonian Path exists (visiting all ${n} vertices), but no Hamiltonian Cycle exists because a simple cycle requires at least 3 vertices (n ≥ 3).`
+      : `A Hamiltonian Path exists (open path visiting all ${n} vertices exactly once), but NO Hamiltonian Cycle exists because the path endpoints cannot be closed with an edge.`;
   } else {
     explanation = `Neither a Hamiltonian Path nor a Hamiltonian Cycle exists. No sequence of edges can traverse all ${n} vertices without revisiting any vertex.`;
   }

@@ -3,7 +3,19 @@ import { checkBipartite } from './bipartite';
 
 export function evaluatePlanarBound(graph: Graph): PlanarBoundResult {
   const v = graph.vertices.length;
-  const e = graph.edges.length;
+
+  // Deduplicate edges to evaluate on the underlying simple undirected graph
+  const undirectedEdgeSet = new Set<string>();
+  for (const edge of graph.edges) {
+    if (edge.source !== edge.target) {
+      const u = edge.source;
+      const vId = edge.target;
+      const key = u < vId ? `${u}--${vId}` : `${vId}--${u}`;
+      undirectedEdgeSet.add(key);
+    }
+  }
+  const e = undirectedEdgeSet.size;
+
   const bip = checkBipartite(graph);
   const isBipartite = bip.isBipartite;
 
@@ -33,11 +45,11 @@ export function evaluatePlanarBound(graph: Graph): PlanarBoundResult {
 
   let explanation = '';
   if (violatesGeneral) {
-    explanation = `VIOLATES General Planar Bound: |E| = ${e} exceeds 3|V| - 6 = 3(${v}) - 6 = ${generalBound}. By the Planar Graph Edge Bound Theorem, every simple planar graph must satisfy e ≤ 3v - 6. Therefore, this graph is DEFINITELY NON-PLANAR.`;
+    explanation = `VIOLATES General Planar Bound: Underlying simple undirected graph has |E| = ${e}, which exceeds 3|V| - 6 = 3(${v}) - 6 = ${generalBound}. By the Planar Graph Edge Bound Theorem, every simple planar graph must satisfy e ≤ 3v - 6. Therefore, this graph is DEFINITELY NON-PLANAR.`;
   } else if (violatesBipartite) {
-    explanation = `VIOLATES Bipartite Planar Bound: Graph is bipartite (no odd cycles, all faces have degree ≥ 4) and has |E| = ${e}, which exceeds 2|V| - 4 = 2(${v}) - 4 = ${bipartiteBound}. Therefore, this graph is DEFINITELY NON-PLANAR.`;
+    explanation = `VIOLATES Bipartite Planar Bound: Underlying graph is bipartite (no odd cycles) and has |E| = ${e}, which exceeds 2|V| - 4 = 2(${v}) - 4 = ${bipartiteBound}. Therefore, this graph is DEFINITELY NON-PLANAR.`;
   } else {
-    explanation = `SATISFIES Edge Bounds: |E| = ${e} ≤ 3|V| - 6 = ${generalBound}${
+    explanation = `SATISFIES Edge Bounds: Underlying simple undirected graph has |E| = ${e} ≤ 3|V| - 6 = ${generalBound}${
       isBipartite ? ` and |E| = ${e} ≤ 2|V| - 4 = ${bipartiteBound}` : ''
     }. NOTE: The edge bound is a NECESSARY condition, NOT a sufficient condition. Satisfying this bound DOES NOT prove the graph is planar (e.g. the Petersen graph satisfies e = 15 ≤ 24, yet is non-planar).`;
   }

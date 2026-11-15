@@ -104,7 +104,11 @@ export function MatchingPanel() {
               Perfect Status
             </span>
             <span className="text-lg font-bold text-white mt-1">
-              {result.isPerfect ? 'Perfect (100%)' : 'Imperfect'}
+              {result.isPerfect
+                ? graph.vertices.length === 0
+                  ? 'Perfect (Size 0)'
+                  : 'Perfect (100%)'
+                : 'Imperfect'}
             </span>
             <span className="text-[11px] text-slate-400">
               {result.isPerfect

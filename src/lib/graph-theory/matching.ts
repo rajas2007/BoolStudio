@@ -15,17 +15,21 @@ export function computeBipartiteMatching(graph: Graph): MatchingResult {
   }
 
   const { partitionA, partitionB } = bip;
+  const totalVertices = graph.vertices.length;
 
   if (partitionA.length === 0 || partitionB.length === 0) {
-    const isPerfect = graph.vertices.length === 0;
+    const isPerfect = totalVertices === 0;
+    const violatorSet = partitionA.length > 0 ? partitionA : partitionB;
     return {
       isBipartite: true,
       matchedEdges: [],
       matchingSize: 0,
       isPerfect,
+      violatorSetS: !isPerfect ? violatorSet : undefined,
+      neighborSetNS: !isPerfect ? [] : undefined,
       explanation: isPerfect
         ? 'The empty graph trivially has a perfect matching of size 0.'
-        : 'One of the bipartite partitions is empty. No edges can exist between sets, so maximum matching size is 0.',
+        : `One or both bipartite partitions are empty (${totalVertices} unmatched vertex(es)). With no opposing partition or edges, no matching is possible (maximum matching size 0).`,
     };
   }
 
@@ -82,8 +86,7 @@ export function computeBipartiteMatching(graph: Graph): MatchingResult {
   });
 
   const matchingSize = matchedEdges.length;
-  const totalVertices = graph.vertices.length;
-  const isPerfect = totalVertices > 0 && matchingSize * 2 === totalVertices;
+  const isPerfect = totalVertices === 0 || (totalVertices > 0 && matchingSize * 2 === totalVertices);
 
   // Hall's Condition Violator search
   let violatorSetS: string[] | undefined = undefined;

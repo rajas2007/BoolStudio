@@ -141,6 +141,9 @@ export function HamiltonianPanel() {
           </div>
         </div>
         <div className="text-[11px] text-slate-400 pt-1 border-t border-slate-800/60">
+          <strong>Convention:</strong> In simple graphs, a Hamiltonian cycle requires at least 3 vertices (n ≥ 3). A single vertex or an edge possesses a Hamiltonian path, but no Hamiltonian cycle.
+        </div>
+        <div className="text-[11px] text-slate-400 pt-1 border-t border-slate-800/60">
           <strong>Sufficient Theorems:</strong> Dirac&apos;s Theorem (1952) guarantees a Hamiltonian cycle if every
           vertex has degree ≥ n/2. Ore&apos;s Theorem (1960) guarantees one if deg(u) + deg(v) ≥ n for every non-adjacent pair.
           However, graphs like the Petersen graph satisfy neither yet remain important case studies.
