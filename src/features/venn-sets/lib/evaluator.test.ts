@@ -151,3 +151,39 @@ describe('Venn & Sets Lab - Hand-Computed Expected Set Evaluations (Unified Eval
     assert.deepStrictEqual(rhs.shadedMasks, [0]);
   });
 });
+
+describe('Venn & Sets Lab - User Quick Test Checklist Verification', () => {
+  it('1. A ∪ B shades 6 regions, and unshaded ones are exactly 001 (m1, C only) and 000 (m0, Outside)', () => {
+    const res = parseAndEvaluate('A ∪ B', 3);
+    assert.strictEqual(res.shadedMasks.length, 6);
+    assert.deepStrictEqual(res.shadedMasks.sort((a, b) => a - b), [2, 3, 4, 5, 6, 7]);
+    const unshaded = [0, 1, 2, 3, 4, 5, 6, 7].filter((m) => !res.shadedMasks.includes(m));
+    assert.deepStrictEqual(unshaded, [0, 1]); // m0 (000) and m1 (001)
+  });
+
+  it('2. A\' shades exactly 4 regions (m0: 000 Outside, m1: 001 C only, m2: 010 B only, m3: 011 B∩C only)', () => {
+    const res = parseAndEvaluate("A'", 3);
+    assert.strictEqual(res.shadedMasks.length, 4);
+    assert.deepStrictEqual(res.shadedMasks.sort((a, b) => a - b), [0, 1, 2, 3]);
+  });
+
+  it('3. (A ∪ B ∪ C)\' shades exactly 1 region, the outside (m0: 000)', () => {
+    const res = parseAndEvaluate("(A ∪ B ∪ C)'", 3);
+    assert.strictEqual(res.shadedMasks.length, 1);
+    assert.deepStrictEqual(res.shadedMasks, [0]);
+  });
+
+  it('4. A Δ B has 4 shaded regions, and A ∩ B ∩ C (m7: 111) is not one of them', () => {
+    const res = parseAndEvaluate('A Δ B', 3);
+    assert.strictEqual(res.shadedMasks.length, 4);
+    assert.deepStrictEqual(res.shadedMasks.sort((a, b) => a - b), [2, 3, 4, 5]);
+    assert.strictEqual(res.shadedMasks.includes(7), false);
+  });
+
+  it('5. For 2 sets: evaluates across all 4 regions [00, 01, 10, 11]', () => {
+    const resUnion = parseAndEvaluate('A ∪ B', 2);
+    assert.deepStrictEqual(resUnion.shadedMasks.sort((a, b) => a - b), [1, 2, 3]); // m1 (01 B only), m2 (10 A only), m3 (11 AB)
+    const resDiff = parseAndEvaluate('A \\ B', 2);
+    assert.deepStrictEqual(resDiff.shadedMasks, [2]); // m2 (10 A only)
+  });
+});

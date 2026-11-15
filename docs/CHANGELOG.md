@@ -36,7 +36,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   - Fixed false-positive error on "A U B" by contextually disambiguating "U" (union vs universal set).
   - Precise syntax error diagnosis with exact index mapping in the original input string.
   - Corrected minterm indexing to standard MSB-first ($A$ is MSB, $C$ is LSB; $m_1 = A'B'C$, $m_4 = AB'C'$), eliminating inverted region shading in the diagram and truth table.
-  - Added full test suite with 22 unit tests validating parser cases and hand-computed expected minterm sets.
+  - Replaced flawed manual SVG arc paths with exact SVG `<clipPath>` (for bit 1) and `<mask fill="white"><circle fill="black"/></mask>` (for bit 0) boolean composition for all 8 regions (and 4 regions for 2 sets), ensuring pixel-perfect mutually disjoint region fills with circle outlines on top.
+  - Added full test suite with 27 unit tests validating parser cases, hand-computed expected minterm sets, and quick-test invariants.
 
 ---
 

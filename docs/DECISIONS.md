@@ -50,13 +50,16 @@ Use this document to log significant engineering and architectural decisions. Do
 
 ---
 
-## [ADR-005] Venn & Sets Lab Single-Source Evaluator & MSB Minterm Mapping
+## [ADR-005] Venn & Sets Lab Single-Source Evaluator & Exact ClipPath/Mask Region Geometry
 * **Date**: 2026-11-15
 * **Status**: Approved
-* **Decision**: Implement a unified, standalone Set AST evaluator (`src/features/venn-sets/lib/parser.ts` and `src/features/venn-sets/lib/evaluator.ts`) that serves as the single source of truth across Venn diagram shading, minterm truth tables, example presets, and identity verification. Establish standard MSB-first minterm indexing: in 3 sets, bit 2 is A, bit 1 is B, bit 0 is C ($m_0=A'B'C', m_1=A'B'C, \dots, m_7=ABC$).
+* **Decision**: 
+  1. Implement a unified, standalone Set AST evaluator (`src/features/venn-sets/lib/parser.ts` and `src/features/venn-sets/lib/evaluator.ts`) that serves as the single source of truth across Venn diagram shading, minterm truth tables, example presets, and identity verification. Establish standard MSB-first minterm indexing: in 3 sets, bit 2 is A, bit 1 is B, bit 0 is C ($m_0=A'B'C', m_1=A'B'C, \dots, m_7=ABC$).
+  2. Implement SVG region rendering using exact recursive `<clipPath>` (for bit=1, inside circle) and inverted `<mask fill="white"><circle fill="black"/></mask>` (for bit=0, outside circle) composition applied to a bounding rectangle for each region, replacing fragile manual SVG arc paths. Circle outlines are drawn on top.
 * **Reason**:
-  1. Previously, an LSB-first index caused inverted mapping between $m_1$ ($C$ only in table vs $A$ only in diagram).
-  2. Disambiguating the letter "U" (union operator vs universal set) requires grammar-level lookback rather than naive string replacement.
-  3. Having a single evaluator guarantees mathematical consistency: the exact boolean result on each minterm bit vector dictates both the Venn region fill and the truth table row.
-* **Alternatives Considered**: Modifying global Boolean parser in `src/lib/parser/` (rejected to maintain zero edits on existing code).
-* **Consequences**: Exact bit-level parity between SVG paths, truth table rows, and PIE equations. 100% pure TypeScript with comprehensive unit test coverage.
+  1. Hand-crafted SVG arc paths (`M... A... Z`) were geometrically flawed, resulting in partial slivers and distorted shapes rather than full overlapping circular regions.
+  2. Applying boolean clipping and masking per bitvector $[a, b, c]$ guarantees that all 8 regions (and 4 regions for 2 sets) are 100% mutually disjoint and mathematically exact without geometric bleeding or approximations.
+  3. Disambiguating the letter "U" (union operator vs universal set) requires grammar-level lookback rather than naive string replacement.
+  4. Having a single evaluator guarantees mathematical consistency: the exact boolean result on each minterm bit vector dictates both the Venn region fill and the truth table row.
+* **Alternatives Considered**: Modifying global Boolean parser in `src/lib/parser/` (rejected to maintain zero edits on existing code), manual bezier arc path approximation (rejected due to clipping artifacts).
+* **Consequences**: Exact pixel-perfect rendering across all 8 disjoint Venn regions, full compatibility with SVG hover/click interactions, and zero discrepancies between diagram and truth table.

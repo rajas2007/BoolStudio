@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useId } from 'react';
 import { RegionMask, RegionShading, SetVarCount } from '../types';
 import { getVennGeometry } from './venn-geometry';
 import { RegionShape } from './RegionShape';
@@ -32,11 +32,15 @@ export function VennDiagram({
   onHoverRegion,
   customSetNames,
 }: VennDiagramProps) {
+  const reactId = useId();
+  // Safe SVG ID prefix without colons
+  const idPrefix = `venn-${reactId.replace(/[^a-zA-Z0-9_-]/g, '')}`;
+
   const geometry = getVennGeometry(varCount);
   const regionInfoList = getRegionInfoList(varCount);
   const regionInfoMap = new Map(regionInfoList.map((r) => [r.mask, r]));
 
-  const viewBox = varCount === 2 ? '0 0 600 420' : '0 0 600 460';
+  const { width, height, viewBox, circles, regions, setNames } = geometry;
 
   return (
     <div className="w-full flex flex-col items-center gap-2">
@@ -47,46 +51,63 @@ export function VennDiagram({
           className="w-full h-full select-none"
           xmlns="http://www.w3.org/2000/svg"
         >
+          {/* Exact Venn Circle Clip Paths and Inverted Circle Masks */}
+          <defs>
+            {circles.map((c) => (
+              <React.Fragment key={c.id}>
+                {/* Kept when bit is 1 (inside this circle) */}
+                <clipPath id={`${idPrefix}-clip${c.id}`}>
+                  <circle cx={c.cx} cy={c.cy} r={c.r} />
+                </clipPath>
+
+                {/* Kept when bit is 0 (outside this circle: white background, black circle cutout) */}
+                <mask id={`${idPrefix}-not${c.id}`}>
+                  <rect width={width} height={height} fill="white" />
+                  <circle cx={c.cx} cy={c.cy} r={c.r} fill="black" />
+                </mask>
+              </React.Fragment>
+            ))}
+          </defs>
+
           {/* Universal Set (U) Boundary Rectangle */}
           <rect
-            x="20"
-            y="20"
-            width="560"
-            height={varCount === 2 ? 380 : 420}
-            rx="16"
+            x="12"
+            y="12"
+            width={width - 24}
+            height={height - 24}
+            rx="14"
             fill="none"
-            stroke="rgba(148, 163, 184, 0.2)"
+            stroke="rgba(148, 163, 184, 0.25)"
             strokeWidth="1.5"
           />
 
           {/* Small Universal Set symbol in top-left corner */}
           <text
-            x="36"
-            y="48"
-            className="text-base font-serif italic font-bold fill-slate-400 select-none"
+            x="24"
+            y="36"
+            className="text-sm font-serif italic font-bold fill-slate-400 select-none"
           >
             U
           </text>
 
-          {/* Render All Disjoint Regions */}
-          {geometry.regions.map((reg) => {
+          {/* Render All 8 (or 4) Disjoint Regions via Exact ClipPath + Mask Composition */}
+          {regions.map((reg) => {
             const info = regionInfoMap.get(reg.mask);
             const isShaded = Boolean(shading[reg.mask]);
             const isHovered = hoveredMask === reg.mask;
-            const countDisplay = regionCounts ? regionCounts[reg.mask] : undefined;
 
             return (
               <RegionShape
                 key={reg.mask}
                 mask={reg.mask}
-                pathD={reg.pathD}
-                labelPosition={reg.labelPosition}
+                bits={reg.bits}
+                setNames={setNames}
+                idPrefix={idPrefix}
+                width={width}
+                height={height}
                 label={info?.label ?? reg.defaultName}
-                shortLabel={info?.shortLabel ?? reg.defaultName}
                 isShaded={isShaded}
                 isHovered={isHovered}
-                showLabels={showLabels}
-                countDisplay={countDisplay}
                 interactive={interactive}
                 onToggle={onToggleRegion}
                 onHover={onHoverRegion}
@@ -94,8 +115,8 @@ export function VennDiagram({
             );
           })}
 
-          {/* Circle Boundary Outlines: 3 distinct colors with ~35% opacity stroke */}
-          {geometry.circles.map((c) => {
+          {/* Circle Boundary Outlines Drawn on Top */}
+          {circles.map((c) => {
             const displayName =
               c.id === 'A'
                 ? customSetNames?.A || c.name
@@ -104,17 +125,17 @@ export function VennDiagram({
                 : customSetNames?.C || c.name;
 
             return (
-              <g key={c.id} className="pointer-events-none">
+              <g key={c.id} className="pointer-events-none select-none">
                 <circle
                   cx={c.cx}
                   cy={c.cy}
                   r={c.r}
                   fill="none"
-                  stroke={c.color}
+                  stroke={c.strokeColor}
                   strokeWidth="2.5"
                   strokeOpacity="0.45"
                 />
-                {/* Bold Set Name outside circle */}
+                {/* Bold Set Name Outside Circle */}
                 <text
                   x={c.labelPos.x}
                   y={c.labelPos.y}
@@ -122,6 +143,44 @@ export function VennDiagram({
                   className="text-base font-bold font-sans fill-white filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]"
                 >
                   {displayName}
+                </text>
+              </g>
+            );
+          })}
+
+          {/* Region Label / Count Chips (Shown when toggled or count provided) */}
+          {regions.map((reg) => {
+            const count = regionCounts ? regionCounts[reg.mask] : undefined;
+            const shouldShow =
+              count !== undefined && count !== null ? true : showLabels;
+            if (!shouldShow) return null;
+
+            const info = regionInfoMap.get(reg.mask);
+            const displayText =
+              count !== undefined ? String(count) : info?.shortLabel ?? reg.defaultName;
+
+            return (
+              <g
+                key={`label-${reg.mask}`}
+                transform={`translate(${reg.labelPosition.x}, ${reg.labelPosition.y})`}
+                className="pointer-events-none select-none"
+              >
+                <rect
+                  x={-24}
+                  y={-11}
+                  width={48}
+                  height={22}
+                  rx={6}
+                  fill="rgba(2, 6, 23, 0.85)"
+                  stroke="rgba(148, 163, 184, 0.4)"
+                  strokeWidth={1}
+                />
+                <text
+                  textAnchor="middle"
+                  dominantBaseline="central"
+                  className="text-xs font-semibold font-mono fill-slate-100"
+                >
+                  {displayText}
                 </text>
               </g>
             );
@@ -142,7 +201,11 @@ export function VennDiagram({
             onClick={onToggleLabels}
             className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 transition-colors"
           >
-            {showLabels ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+            {showLabels ? (
+              <EyeOff className="w-3.5 h-3.5" />
+            ) : (
+              <Eye className="w-3.5 h-3.5" />
+            )}
             <span>{showLabels ? 'Hide labels' : 'Show labels'}</span>
           </button>
         )}

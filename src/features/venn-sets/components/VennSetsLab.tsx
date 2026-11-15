@@ -49,18 +49,18 @@ export function VennSetsLab() {
   const currentShading =
     activeTab === 'manual'
       ? manualShading
-      : activeTab === 'expression' && parsedExpr && parsedExpr.valid
+      : activeTab === 'expression'
       ? Object.fromEntries(
           Array.from({ length: Math.pow(2, varCount) }, (_, i) => [
             i,
-            parsedExpr.shadedMasks.includes(i),
+            Boolean(parsedExpr?.valid && parsedExpr.shadedMasks.includes(i)),
           ])
         )
       : activeTab === 'inclusion-exclusion'
       ? Object.fromEntries(
           Array.from({ length: Math.pow(2, varCount) }, (_, i) => [
             i,
-            pieResult.valid && (pieResult.regionCounts[i] ?? 0) > 0,
+            Boolean(pieResult.valid && (pieResult.regionCounts[i] ?? 0) > 0),
           ])
         )
       : manualShading;
