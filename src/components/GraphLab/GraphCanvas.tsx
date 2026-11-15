@@ -6,6 +6,7 @@ import { computeConnectedComponents } from '@/lib/graph-theory/connectivity';
 import { checkBipartite } from '@/lib/graph-theory/bipartite';
 import { findEulerianPathOrCircuit } from '@/lib/graph-theory/euler';
 import { findHamiltonianPathsAndCycles } from '@/lib/graph-theory/hamiltonian';
+import { computeBipartiteMatching } from '@/lib/graph-theory/matching';
 import { analyzeWalk } from '@/lib/graph-theory/walks-cycles';
 import { COLOR_PALETTE } from '@/lib/graph-theory/coloring';
 
@@ -47,6 +48,7 @@ export function GraphCanvas() {
   const bipartite = useMemo(() => checkBipartite(graph), [graph]);
   const euler = useMemo(() => findEulerianPathOrCircuit(graph), [graph]);
   const hamiltonian = useMemo(() => findHamiltonianPathsAndCycles(graph), [graph]);
+  const matching = useMemo(() => computeBipartiteMatching(graph), [graph]);
   const walkAnalysis = useMemo(
     () => analyzeWalk(graph, walkVertexSequence),
     [graph, walkVertexSequence]
@@ -196,6 +198,13 @@ export function GraphCanvas() {
       if (activeEdges.includes(edgeId)) {
         stroke = '#10b981'; // Emerald for traversed Hamiltonian edges
         strokeWidth = 3.5;
+      }
+    }
+
+    if (activeTopic === 'matching' && matching.isBipartite) {
+      if (matching.matchedEdges.includes(edgeId)) {
+        stroke = '#10b981'; // Emerald for matched edges
+        strokeWidth = 4;
       }
     }
 

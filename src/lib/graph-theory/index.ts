@@ -8,4 +8,5 @@ export * from './coloring';
 export * from './tree';
 export * from './hamiltonian';
 export * from './planar-bound';
+export * from './matching';
 export * from './presets';

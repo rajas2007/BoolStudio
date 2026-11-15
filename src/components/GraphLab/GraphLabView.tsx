@@ -118,6 +118,17 @@ const PlanarPanel = dynamic(
   }
 );
 
+const MatchingPanel = dynamic(
+  () => import('./MatchingPanel').then((m) => m.MatchingPanel),
+  {
+    loading: () => (
+      <div className="p-8 text-center text-slate-400 glass-panel rounded-2xl animate-pulse text-sm">
+        Loading Bipartite Matching Engine...
+      </div>
+    ),
+  }
+);
+
 export function GraphLabView() {
   const { activeTopic } = useGraphLab();
 
@@ -157,6 +168,7 @@ export function GraphLabView() {
           {activeTopic === 'euler' && <EulerPanel />}
           {activeTopic === 'hamiltonian' && <HamiltonianPanel />}
           {activeTopic === 'bipartite' && <BipartitePanel />}
+          {activeTopic === 'matching' && <MatchingPanel />}
           {activeTopic === 'coloring' && <ColoringPanel />}
           {activeTopic === 'tree' && <TreePanel />}
           {activeTopic === 'planar' && <PlanarPanel />}

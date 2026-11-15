@@ -14,6 +14,7 @@ import {
   GitFork,
   Compass,
   Maximize2,
+  Link2,
 } from 'lucide-react';
 
 export function TopicTabs() {
@@ -27,6 +28,7 @@ export function TopicTabs() {
     { id: 'euler', label: 'Euler Circuit & Trail', icon: Sparkles },
     { id: 'hamiltonian', label: 'Hamiltonian Paths & Cycles', icon: Compass },
     { id: 'bipartite', label: 'Bipartite & Odd Cycles', icon: Split },
+    { id: 'matching', label: 'Bipartite Matching & Hall', icon: Link2 },
     { id: 'coloring', label: 'Graph Colouring', icon: Palette },
     { id: 'tree', label: 'Tree Detection', icon: GitFork },
     { id: 'planar', label: 'Planar Graph Bound', icon: Maximize2 },
