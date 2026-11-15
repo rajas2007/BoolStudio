@@ -4,7 +4,32 @@
 - **Project Name**: d3graphTheory
 - **Repository URL**: https://github.com/mrpandey/d3graphTheory
 - **Author**: Avinash Pandey
-- **License**: MIT License
 
 ### Note
-BoolStudio's Graph Theory Lab is a clean-room native reimplementation written in TypeScript, React, Tailwind CSS, and SVG without any runtime dependencies, jQuery, D3, or MathJax from the upstream project. Educational concepts and visual representations are adapted under the terms of the MIT License.
+Independent reimplementation inspired by the upstream project; no upstream code is included.
+
+## License of the upstream project
+
+```text
+MIT License
+
+Copyright (c) 2017 Avinash Pandey
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
