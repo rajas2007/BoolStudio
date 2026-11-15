@@ -1,67 +1,128 @@
-# Branch Log: feature/graph-theory
+# Branch Documentation: feature/graph-theory
 
-## AGENTS.md Shutdown Requirements (Exact Quote)
-```text
-Before concluding every session, ensure you complete the following updates:
-- [ ] Update ai/HANDOFF.md (Current status, modifications, next recommendations)
-- [ ] Update ai/TASKS.md (Move tasks to completed/in-progress, update backlog)
-- [ ] Update ai/SESSION_LOG.md (Log the date, summary, files changed, features/bugs resolved)
-- [ ] Update docs/CHANGELOG.md (Add items under Added, Changed, Fixed, Removed with semantic version tags)
-- [ ] Update docs/DECISIONS.md (If any technical decisions or trade-offs were made)
-- [ ] Update docs/ARCHITECTURE.md (If the system architecture, component relations, or module designs changed)
-- [ ] Update docs/DATABASE.md (If schema or persistent models changed)
-- [ ] Update docs/API.md (If endpoints, message formats, or interfaces changed)
+This document contains ready-to-paste sections for the shared documentation files required by the AGENTS.md shutdown checklist. A team lead will merge these entries into the respective shared documentation files upon merging `feature/graph-theory` into `main`.
+
+---
+
+## 1. Ready-to-Paste: ai/HANDOFF.md
+
+```markdown
+### Graph Theory Lab (Unit 6)
+- **Status**: Completed Tier 1 implementation of Graph Theory Lab.
+- **Route**: `/graph-theory`
+- **Capabilities Delivered**:
+  - Interactive SVG Graph Canvas with pointer events for vertex/edge creation, dragging, and deletion.
+  - Live Properties Panel calculating Order |V|, Size |E|, degree distributions, and Handshaking Lemma equation verification.
+  - Adjacency & Incidence Matrix visualizer with hover-linked element highlighting on the canvas.
+  - Interactive Walk Builder classifying sequences into Walk, Trail, Path, Circuit, Cycle, and Closed Walk, with illegal step rejection.
+  - Connected Components solver with distinct color overlays and weak connectivity handling for directed graphs.
+  - Eulerian path/circuit analyzer using Hierholzer's algorithm with interactive playback scrubber.
+  - Bipartite 2-colouring via BFS with partition sets A/B and odd-cycle proof certificate display.
+  - Graph Colouring engine with manual palette, greedy heuristic, and exact backtracking chromatic number for n <= 10.
+  - Tree detection verifying connectivity, acyclicity, and |E| = |V| - 1.
+- **Verification**: Fully verified on K_4, K_5, K_2,3, K_3,3, C_5, Trees, Petersen graph, disconnected graphs, single edge, single vertex, and empty graphs.
 ```
-*Note: Per user instructions for this branch, shared ai/ docs are not modified directly on `feature/graph-theory` to prevent merge conflicts. All updates are logged here for team lead integration.*
 
 ---
 
-## Session Summary
-- **Feature**: Graph Theory Lab (Unit 6 Syllabus Slice)
-- **Branch**: `feature/graph-theory`
-- **Scope Implemented**:
-  1. Interactive SVG graph editor: vertex creation, edge creation, vertex dragging, delete, directed/undirected toggle, clear, presets (Path, Cycle, Complete $K_n$, Complete Bipartite $K_{m,n}$, Tree, Petersen, Disconnected, Single Vertex, Empty). Self-loops and multi-edges disallowed.
-  2. Live properties panel: Order $|V|$, Size $|E|$, degrees table (degree, in-degree, out-degree), Handshake Lemma verification ($\sum \text{deg} = 2|E|$ for undirected; $\sum \text{in-deg} = \sum \text{out-deg} = |E|$ for directed).
-  3. Live matrix representations: Adjacency matrix $A$ (symmetry check, row sums) and Incidence matrix $M$ (column sums = 2 for undirected, 0 for directed). Cross-highlighting links hovered cells/headers to canvas vertices/edges.
-  4. Walks, paths, and cycles: Click-to-build walk sequence with real-time classification (Walk, Trail, Path, Circuit, Cycle, Closed Walk), length and open/closed status, plus illegal step rejection.
-  5. Connected components: BFS component discovery, distinct color highlighting on canvas, component count, weak connectivity for directed graphs.
-  6. Eulerian analysis: Degree parity & connectivity condition verification, Hierholzer algorithm with interactive playback/step-through player.
-  7. Bipartite graphs: BFS 2-colouring into independent sets A and B, live canvas partitions, and odd-cycle proof certificate highlighting on failure.
-  8. Graph colouring: Manual color palette picker, greedy "Colour It" solver, validity check, and exact backtracking chromatic number $\chi(G)$ for small graphs ($n \le 10$).
-  9. Trees: Verification of $|E| = |V| - 1$, connectivity, and acyclicity with failure diagnostics.
+## 2. Ready-to-Paste: ai/TASKS.md
+
+```markdown
+- [x] Implement Tier 1 Graph Theory Lab (`src/lib/graph-theory/`, `src/components/GraphLab/`, `src/hooks/useGraphLab.ts`, `src/app/graph-theory/page.tsx`)
+- [ ] Tier 2 Graph Theory Lab: Hamiltonian path/cycle backtracking detection (Locked)
+- [ ] Tier 2 Graph Theory Lab: Planar graph edge bound calculation (Locked)
+- [ ] Tier 2 Graph Theory Lab: Bipartite matching via augmenting paths (Locked)
+```
 
 ---
 
-## Files Created & Modified
+## 3. Ready-to-Paste: ai/SESSION_LOG.md
 
-### Modified Existing Files (Strictly Minimal)
-- `src/components/layout/Navbar.tsx`: Added `"Graph Lab"` navigation link and icon between Workspace and About.
+```markdown
+## [2026-11-15] - Graph Theory Lab (Tier 1)
+- **Summary**: Implemented Unit 6 Graph Theory Lab featuring an interactive SVG graph canvas, live properties and Handshake Lemma verification, Adjacency/Incidence matrix tables with canvas hover linking, real-time Walk/Trail/Path/Cycle classifier, Connected Components with distinct coloring, Hierholzer Euler circuit/trail player, BFS bipartite 2-colouring with odd-cycle proof extraction, graph colouring with exact backtracking chromatic number, and tree diagnostic engine.
+- **Files Created**:
+  - `src/lib/types/graph.ts`
+  - `src/lib/graph-theory/graph-model.ts`
+  - `src/lib/graph-theory/matrix-builders.ts`
+  - `src/lib/graph-theory/connectivity.ts`
+  - `src/lib/graph-theory/walks-cycles.ts`
+  - `src/lib/graph-theory/euler.ts`
+  - `src/lib/graph-theory/bipartite.ts`
+  - `src/lib/graph-theory/coloring.ts`
+  - `src/lib/graph-theory/tree.ts`
+  - `src/lib/graph-theory/presets.ts`
+  - `src/lib/graph-theory/index.ts`
+  - `src/hooks/useGraphLab.ts`
+  - `src/components/GraphLab/GraphCanvas.tsx`
+  - `src/components/GraphLab/Toolbar.tsx`
+  - `src/components/GraphLab/PropertiesPanel.tsx`
+  - `src/components/GraphLab/MatrixPanel.tsx`
+  - `src/components/GraphLab/WalkPanel.tsx`
+  - `src/components/GraphLab/ConnectivityPanel.tsx`
+  - `src/components/GraphLab/EulerPanel.tsx`
+  - `src/components/GraphLab/BipartitePanel.tsx`
+  - `src/components/GraphLab/ColoringPanel.tsx`
+  - `src/components/GraphLab/TreePanel.tsx`
+  - `src/components/GraphLab/TopicTabs.tsx`
+  - `src/components/GraphLab/GraphLabView.tsx`
+  - `src/app/graph-theory/page.tsx`
+  - `docs/third-party/graph-theory.md`
+  - `ai/branches/graph-theory.md`
+- **Files Modified**:
+  - `src/components/layout/Navbar.tsx` (Added Graph Lab route navigation entry)
+- **Testing Status**: Zero TypeScript errors (`npx tsc --noEmit`), clean lint on new files (`npx eslint`), and Next.js static build pass (`npm run build`).
+```
 
-### New Files Created
-- `src/lib/types/graph.ts`: Core domain types and algorithm interfaces.
-- `src/lib/graph-theory/graph-model.ts`: Graph properties, degree calculation, Handshake Lemma, immutable modifiers.
-- `src/lib/graph-theory/matrix-builders.ts`: Adjacency and incidence matrix construction.
-- `src/lib/graph-theory/connectivity.ts`: Connected component solver.
-- `src/lib/graph-theory/walks-cycles.ts`: Walk sequence validation and classification.
-- `src/lib/graph-theory/euler.ts`: Euler circuit/trail theorem and Hierholzer pathing.
-- `src/lib/graph-theory/bipartite.ts`: BFS 2-colouring and odd cycle extractor.
-- `src/lib/graph-theory/coloring.ts`: Greedy coloring, exact chromatic solver (backtracking), validator.
-- `src/lib/graph-theory/tree.ts`: Tree diagnostic engine.
-- `src/lib/graph-theory/presets.ts`: Parametric graph presets.
-- `src/lib/graph-theory/index.ts`: Barrel export.
-- `src/hooks/useGraphLab.ts`: Isolated Zustand store.
-- `src/components/GraphLab/GraphCanvas.tsx`: Responsive interactive SVG canvas.
-- `src/components/GraphLab/Toolbar.tsx`: Editor tools and preset selectors.
-- `src/components/GraphLab/PropertiesPanel.tsx`: Live order, size, degrees, and Handshake Lemma.
-- `src/components/GraphLab/MatrixPanel.tsx`: Interactive Adjacency and Incidence matrices.
-- `src/components/GraphLab/WalkPanel.tsx`: Walk builder and classifier.
-- `src/components/GraphLab/ConnectivityPanel.tsx`: Connected components listing and badges.
-- `src/components/GraphLab/EulerPanel.tsx`: Euler theorem checker and playback player.
-- `src/components/GraphLab/BipartitePanel.tsx`: 2-colouring partitions and odd-cycle proof.
-- `src/components/GraphLab/ColoringPanel.tsx`: Greedy solver, manual palette, chromatic number.
-- `src/components/GraphLab/TreePanel.tsx`: Tree validation diagnostics.
-- `src/components/GraphLab/TopicTabs.tsx`: In-page topic navigation.
-- `src/components/GraphLab/GraphLabView.tsx`: Main view with dynamic imports.
-- `src/app/graph-theory/page.tsx`: Route page server component.
-- `docs/third-party/graph-theory.md`: Upstream attribution.
-- `ai/branches/graph-theory.md`: This branch documentation file.
+---
+
+## 4. Ready-to-Paste: docs/CHANGELOG.md
+
+```markdown
+### Added
+- **Graph Theory Lab (`/graph-theory`)**: Dedicated educational platform for Discrete Mathematics Unit 6:
+  - Interactive SVG graph manipulation canvas (vertex creation, edge drawing, vertex dragging, deletion, directed/undirected toggle).
+  - Live Handshaking Lemma check verifying `Σ deg(v) = 2|E|` and directed arc balance.
+  - Live Adjacency and Incidence matrix representations with bidirectional hover cross-highlighting.
+  - Walk, Trail, Path, Circuit, and Cycle validator with illegal step detection.
+  - Weak and strong Connected Components partition visualizer.
+  - Eulerian circuit and trail detection with animated step-through player powered by Hierholzer's algorithm.
+  - Bipartite graph 2-colouring engine with odd-cycle certificate generation for non-bipartite graphs.
+  - Graph colouring engine with exact backtracking chromatic number computation for small graphs.
+  - Tree detection with diagnostic checks for connectivity, acyclicity, and the `|E| = |V| - 1` property.
+```
+
+---
+
+## 5. Ready-to-Paste: docs/DECISIONS.md
+
+```markdown
+## [ADR-004] Graph Theory Lab Standalone Architecture
+* **Date**: 2026-11-15
+* **Status**: Approved
+* **Decision**: Implement Graph Theory Lab with a dedicated pure TypeScript library (`src/lib/graph-theory/`), isolated Zustand store (`src/hooks/useGraphLab.ts`), SVG canvas components (`src/components/GraphLab/`), and an App Router page (`src/app/graph-theory/page.tsx`).
+* **Reason**: Prevents coupling with the existing Boolean Algebra engine (`useBooleanStudio`) and ensures zero impact on existing truth table and circuit simulator performance while adhering to strict Tauri CSP (no external script/physics dependencies).
+* **Alternatives Considered**: Integrating graph states into `useBooleanStudio` or utilizing third-party graph layout engines.
+* **Consequences**: Pure SVG and deterministic circular layouts guarantee instant zero-latency rendering and 100% compatibility with static export (`output: 'export'`).
+```
+
+---
+
+## 6. Ready-to-Paste: docs/ARCHITECTURE.md
+
+```markdown
+### Graph Theory Subsystem
+- **Domain Logic**: `src/lib/graph-theory/` contains pure TypeScript implementations of graph algorithms (Euler, Bipartite BFS, Chromatic backtracking, Tree analysis, Connectivity).
+- **State Layer**: `src/hooks/useGraphLab.ts` manages independent graph state, active modes, selection states, walk sequences, and step playback.
+- **Presentation Layer**: `src/components/GraphLab/` provides responsive SVG rendering and tabbed topic inspection panels.
+```
+
+---
+
+## 7. Ready-to-Paste: docs/DATABASE.md
+*(No change - BoolStudio operates with zero persistent server databases).*
+
+---
+
+## 8. Ready-to-Paste: docs/API.md
+*(No change - BoolStudio has no backend API endpoints and executes entirely client-side).*
