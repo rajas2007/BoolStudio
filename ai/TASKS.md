@@ -1,6 +1,10 @@
 # Task Board
 
 ## 📋 Completed
+- [x] Unify UI into Zero-Scroll Studio Viewports across all labs:
+  - Redesign Boolean Logic Workspace (`/workspace` and `ExpressionInput.tsx`): Compact header toolbar (~44px) with inline input, evaluate action, floating presets dropdown, share button, slim operators ribbon (~34px), and fixed 560px scroll-contained visualization canvas.
+  - Redesign Venn & Sets Lab (`/venn-sets`): Compact header toolbar (~44px) with 2/3 sets switch, label toggles, manual shading controls, horizontal mode tabs, and matched 2-column 560px grid (left: SVG diagram, right: scroll-contained controls/truth table).
+  - All pages fit standard desktop viewport (1280x820) with ZERO page/window scrolling while preserving 100% of project logic.
 - [x] Resolve all ESLint and TypeScript diagnostics across `src/components/GraphLab/Toolbar.tsx`, `src/lib/` (`kmap`, `logic`, `parser`, `simplifier`, `types`), and `src/components/` (0 errors, 0 warnings across whole project).
 - [x] Fix Windows Desktop WebView2 multi-instance crash (0x800700AA) via single-instance Mutex and clean window activation in `src-tauri/src/main.rs`.
 - [x] Streamline Graph Theory Lab UI into a zero-scroll studio viewport:

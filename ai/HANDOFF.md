@@ -41,6 +41,10 @@
   - Contextual token lookback disambiguating `"U"` (union between sets vs universal set).
   - Standard MSB-first minterm ordering ($A$ as MSB [bit 2], $B$ as bit 1, $C$ as LSB [bit 0]):
     $m_0=A'B'C', m_1=A'B'C, m_2=A'BC', m_3=A'BC, m_4=AB'C', m_5=AB'C, m_6=ABC', m_7=ABC$.
+- [x] **Zero-Scroll Studio Viewport Across All Labs**:
+  - Refactored `/workspace` and `ExpressionInput.tsx` into a high-density studio with compact toolbar (~44px), operators ribbon (~34px), and fixed 560px scroll-contained visualization canvas.
+  - Refactored `/venn-sets` into a high-density studio with compact toolbar (~44px), horizontal mode tabs, and matched 2-column 560px grid (left: centered SVG diagram, right: scroll-contained controls/truth table).
+  - All three labs (`/graph-theory`, `/venn-sets`, `/workspace`) fit comfortably within standard desktop resolutions (1280x820) without window-level page scrolling.
 - [x] **Clean UI Design**:
   - 2-column desktop layout (large $\ge 480$px Venn diagram on left, expression input and controls on right).
   - Single rounded rectangle Universe with top-left italic "U" badge.

@@ -37,7 +37,8 @@ graph TD
 
 ## 📦 Key Modules & Component Boundaries
 * `src-tauri/`: Tauri 2.0 Rust project defining application metadata, window geometry, security capabilities, and NSIS installer packaging.
-* `src/components/Workspace/WorkspaceView.tsx`: Tab-based workspace view utilizing Next.js `dynamic()` imports for on-demand chunk loading.
+* `src/components/Workspace/WorkspaceView.tsx`: Studio Viewport with compact top toolbar, operators ribbon, horizontal navigation tabs, and a fixed 560px scroll-contained visualization canvas utilizing Next.js `dynamic()` imports for on-demand chunk loading.
+* `src/features/venn-sets/components/VennSetsLab.tsx`: Studio Viewport for Venn & Sets with compact toolbar (2/3 sets switch, label toggles), mode tabs, and matched 2-column 560px grid (left: SVG Venn diagram, right: scroll-contained controls/truth-table).
 * `src/lib/parser/`: Tokenizes string expressions and parses them into AST nodes using recursive descent syntax checks.
 * `src/lib/logic/`: Evaluates AST nodes against boolean input bindings and constructs hierarchical logic circuits.
 * `src/lib/truth-table/`: Computes truth table matrices for $2^N$ variable assignments.

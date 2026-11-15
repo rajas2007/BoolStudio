@@ -1,5 +1,21 @@
 # Session History
 
+## [2026-11-15] - Zero-Scroll Studio Viewports for Venn & Sets Lab and Boolean Workspace
+- **Summary**: Refactored the UI of both the Venn & Sets Lab (`/venn-sets`) and Boolean Logic Workspace (`/workspace`) to use the zero-scroll Studio Viewport pattern proven in the Graph Theory Lab. Eliminated all page/window-level scrolling in standard 1280x820 desktop resolutions. Preserved 100% of underlying computational logic, parsing, and state management.
+- **Key Enhancements**:
+  - `src/features/venn-sets/components/VennSetsLab.tsx`: Replaced oversized page headers and padded grid with a compact glass toolbar (~44px) housing branding, Units 1 & 3 badge, 2-Set/3-Set switcher, and region tools. Integrated 5 mode tabs into a horizontal strip and locked the 2-column layout to a fixed 560px height (left: centered SVG diagram, right: scroll-contained controls/truth-table).
+  - `src/features/venn-sets/components/IdentityCheckerPanel.tsx`: Restructured into a clean 2-column layout (left: side-by-side diagrams + verdict, right: inputs and presets) fitting inside the 560px container.
+  - `src/features/venn-sets/components/WordProblemPanel.tsx`: Compacted problem selector chips and balanced narrative challenge with target diagram in a fixed 500px viewport.
+  - `src/components/ExpressionInput/ExpressionInput.tsx`: Redesigned from a massive multi-row card into a sleek studio header toolbar (~44px) with inline input, evaluation indicator, "Evaluate" action, floating presets dropdown, and share button, accompanied by a slim operators ribbon (~34px).
+  - `src/components/Workspace/WorkspaceView.tsx`: Integrated the compact expression toolbar, horizontal tab switcher, and a dedicated 560px viewport container with internal scrolling for truth table, circuit visualizer, K-map, and simplification steps.
+- **Verification**:
+  - 38/38 unit tests passing (11 Graph Theory + 27 Venn & Sets).
+  - TypeScript compiler: 0 errors (`npx tsc --noEmit`).
+  - ESLint: 0 errors, 0 warnings (`npm run lint`).
+  - Static export production build: all 8 routes generated cleanly.
+
+---
+
 ## [2026-11-15] - Resolve All Codebase Diagnostics across src & Fix WebView2 Single-Instance Crash
 - **Summary**: Identified and cleanly resolved all ESLint and TypeScript diagnostics across `src/` including `Toolbar.tsx`, `src/lib/` (`kmap`, `logic`, `parser`, `simplifier`, `types`), and `src/components/` (`ExpressionInput`, `LogicCircuit`, `Simplification`). All diagnostics now pass with 0 errors and 0 warnings. Full static Next.js production build (`npx next build`) and 38 unit tests pass without error. In addition, resolved the Windows desktop WebView2 crash (`0x800700AA`) with a Win32 single-instance Mutex (`Local\BoolStudio_SingleInstance_Mutex`) in `src-tauri/src/main.rs`.
 - **Root Cause & Fixes**:

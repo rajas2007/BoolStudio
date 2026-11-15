@@ -35,6 +35,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - **Windows Desktop Release Verification**: Validated Tauri 2.0 release compilation (`npm run tauri:build`) bundling the complete application into `src-tauri/target/release/boolstudio.exe` and `BoolStudio_0.1.0_x64-setup.exe` (2.14 MB), with live multi-process WebView2 runtime verification on Windows.
 
 ### Changed
+- **Zero-Scroll Studio Viewports for All Labs**: Extended the zero-scroll studio viewport design across all three major platforms:
+  - Boolean Logic Workspace (`/workspace`): Replaced page-scrolling input with a compact top toolbar (~44px), operators ribbon (~34px), and fixed 560px scroll-contained visualization canvas.
+  - Venn & Sets Lab (`/venn-sets`): Replaced page-scrolling headers with a compact toolbar (~44px), mode tabs, and matched 2-column 560px grid (left: centered SVG diagram, right: scroll-contained controls/truth table).
+  - All pages fit standard desktop resolutions (1280x820) with zero window-level scrolling while preserving 100% of computational logic and state.
 - **Zero-Scroll Viewport Studio Layout**: Refactored Graph Theory Lab into a high-density, zero-scroll studio viewport where the toolbar, topic tabs, canvas, and active results panel fit within standard desktop resolutions without requiring page-level scrolling.
 - **Venn & Sets Lab UI Redesign**:
   - Implemented 2-column desktop layout (large $\ge 480$px Venn diagram on left, expression input and controls on right).
