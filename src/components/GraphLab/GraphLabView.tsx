@@ -96,6 +96,17 @@ const TreePanel = dynamic(
   }
 );
 
+const HamiltonianPanel = dynamic(
+  () => import('./HamiltonianPanel').then((m) => m.HamiltonianPanel),
+  {
+    loading: () => (
+      <div className="p-8 text-center text-slate-400 glass-panel rounded-2xl animate-pulse text-sm">
+        Loading Hamiltonian Explorer...
+      </div>
+    ),
+  }
+);
+
 export function GraphLabView() {
   const { activeTopic } = useGraphLab();
 
@@ -133,6 +144,7 @@ export function GraphLabView() {
           {activeTopic === 'walks' && <WalkPanel />}
           {activeTopic === 'components' && <ConnectivityPanel />}
           {activeTopic === 'euler' && <EulerPanel />}
+          {activeTopic === 'hamiltonian' && <HamiltonianPanel />}
           {activeTopic === 'bipartite' && <BipartitePanel />}
           {activeTopic === 'coloring' && <ColoringPanel />}
           {activeTopic === 'tree' && <TreePanel />}

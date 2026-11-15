@@ -12,6 +12,7 @@ import {
   Split,
   Palette,
   GitFork,
+  Compass,
 } from 'lucide-react';
 
 export function TopicTabs() {
@@ -23,6 +24,7 @@ export function TopicTabs() {
     { id: 'walks', label: 'Walks, Paths & Cycles', icon: Footprints },
     { id: 'components', label: 'Connected Components', icon: Layers },
     { id: 'euler', label: 'Euler Circuit & Trail', icon: Sparkles },
+    { id: 'hamiltonian', label: 'Hamiltonian Paths & Cycles', icon: Compass },
     { id: 'bipartite', label: 'Bipartite & Odd Cycles', icon: Split },
     { id: 'coloring', label: 'Graph Colouring', icon: Palette },
     { id: 'tree', label: 'Tree Detection', icon: GitFork },

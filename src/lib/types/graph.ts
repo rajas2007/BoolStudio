@@ -123,7 +123,10 @@ export type TopicTab =
   | 'euler'
   | 'bipartite'
   | 'coloring'
-  | 'tree';
+  | 'tree'
+  | 'hamiltonian'
+  | 'planar'
+  | 'matching';
 
 export type PresetName =
   | 'empty'
@@ -135,3 +138,38 @@ export type PresetName =
   | 'tree'
   | 'petersen'
   | 'disconnected';
+
+export interface HamiltonianResult {
+  hasCycle: boolean;
+  hasPath: boolean;
+  cycle: string[]; // sequence of vertex IDs
+  cycleEdges: string[]; // sequence of edge IDs
+  path: string[]; // sequence of vertex IDs
+  pathEdges: string[]; // sequence of edge IDs
+  exceedsLimit: boolean;
+  explanation: string;
+}
+
+export interface PlanarBoundResult {
+  order: number; // |V|
+  size: number;  // |E|
+  isBipartite: boolean;
+  generalBound: number; // 3v - 6
+  bipartiteBound: number; // 2v - 4
+  violatesGeneral: boolean;
+  violatesBipartite: boolean;
+  status: 'VIOLATES' | 'SATISFIES' | 'TRIVIAL';
+  explanation: string;
+  eulersFormulaNote: string;
+}
+
+export interface MatchingResult {
+  isBipartite: boolean;
+  matchedEdges: string[]; // edge IDs in matching
+  matchingSize: number;
+  isPerfect: boolean;
+  violatorSetS?: string[]; // vertex IDs of Hall's condition violator
+  neighborSetNS?: string[]; // vertex IDs of neighbors N(S)
+  explanation: string;
+}
+

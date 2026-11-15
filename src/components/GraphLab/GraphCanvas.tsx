@@ -5,6 +5,7 @@ import { useGraphLab } from '@/hooks/useGraphLab';
 import { computeConnectedComponents } from '@/lib/graph-theory/connectivity';
 import { checkBipartite } from '@/lib/graph-theory/bipartite';
 import { findEulerianPathOrCircuit } from '@/lib/graph-theory/euler';
+import { findHamiltonianPathsAndCycles } from '@/lib/graph-theory/hamiltonian';
 import { analyzeWalk } from '@/lib/graph-theory/walks-cycles';
 import { COLOR_PALETTE } from '@/lib/graph-theory/coloring';
 
@@ -45,6 +46,7 @@ export function GraphCanvas() {
   const components = useMemo(() => computeConnectedComponents(graph), [graph]);
   const bipartite = useMemo(() => checkBipartite(graph), [graph]);
   const euler = useMemo(() => findEulerianPathOrCircuit(graph), [graph]);
+  const hamiltonian = useMemo(() => findHamiltonianPathsAndCycles(graph), [graph]);
   const walkAnalysis = useMemo(
     () => analyzeWalk(graph, walkVertexSequence),
     [graph, walkVertexSequence]
@@ -148,6 +150,13 @@ export function GraphCanvas() {
       }
     }
 
+    if (activeTopic === 'hamiltonian' && (hamiltonian.hasCycle || hamiltonian.hasPath)) {
+      const activeVerts = hamiltonian.hasCycle ? hamiltonian.cycle : hamiltonian.path;
+      if (activeVerts.includes(vertexId)) {
+        return '#10b981'; // Emerald
+      }
+    }
+
     return '#1e293b'; // Slate 800 default
   };
 
@@ -178,6 +187,14 @@ export function GraphCanvas() {
       const activeEdges = euler.circuitOrTrailEdges.slice(0, eulerStepIndex);
       if (activeEdges.includes(edgeId)) {
         stroke = '#10b981'; // Emerald for traversed Euler edges
+        strokeWidth = 3.5;
+      }
+    }
+
+    if (activeTopic === 'hamiltonian' && (hamiltonian.hasCycle || hamiltonian.hasPath)) {
+      const activeEdges = hamiltonian.hasCycle ? hamiltonian.cycleEdges : hamiltonian.pathEdges;
+      if (activeEdges.includes(edgeId)) {
+        stroke = '#10b981'; // Emerald for traversed Hamiltonian edges
         strokeWidth = 3.5;
       }
     }

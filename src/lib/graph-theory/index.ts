@@ -6,4 +6,5 @@ export * from './euler';
 export * from './bipartite';
 export * from './coloring';
 export * from './tree';
+export * from './hamiltonian';
 export * from './presets';
