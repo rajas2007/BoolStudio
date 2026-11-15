@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useGraphLab } from '@/hooks/useGraphLab';
-import { EditorMode, PresetName } from '@/lib/types/graph';
+import { PresetName } from '@/lib/types/graph';
 import {
   MousePointer,
   PlusCircle,
@@ -34,8 +34,8 @@ export function Toolbar() {
 
   const [presetMenuOpen, setPresetMenuOpen] = useState(false);
   const [knParam, setKnParam] = useState(4);
-  const [kmnParamM, setKmnParamM] = useState(3);
-  const [kmnParamN, setKmnParamN] = useState(3);
+  const kmnParamM = 3;
+  const kmnParamN = 3;
 
   const presets: Array<{ id: PresetName; label: string; description: string }> = [
     { id: 'k_n', label: `Complete K_${knParam}`, description: 'Complete graph on n vertices' },
