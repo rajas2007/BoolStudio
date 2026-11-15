@@ -1,6 +1,7 @@
 # Task Board
 
 ## 📋 Completed
+- [x] Fix Windows Desktop WebView2 multi-instance crash (0x800700AA) via single-instance Mutex and clean window activation in `src-tauri/src/main.rs`.
 - [x] Streamline Graph Theory Lab UI into a zero-scroll studio viewport:
   - Compact Studio Header & Toolbar (`src/components/GraphLab/Toolbar.tsx`) consolidating title branding, Unit 6 badge, mode tools, $V/E$ counters, conversion toggle, presets dropdown, undo, clear, and inline toasts into a single ~44px row.
   - Horizontal segmented topic tabs (`src/components/GraphLab/TopicTabs.tsx`) tiled across the workspace with concise labels and tooltips, eliminating horizontal truncation.

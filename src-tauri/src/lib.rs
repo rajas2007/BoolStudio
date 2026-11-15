@@ -1,6 +1,6 @@
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-  tauri::Builder::default()
+  let result = tauri::Builder::default()
     .setup(|app| {
       if cfg!(debug_assertions) {
         app.handle().plugin(
@@ -11,6 +11,12 @@ pub fn run() {
       }
       Ok(())
     })
-    .run(tauri::generate_context!())
-    .expect("error while building tauri application");
+    .run(tauri::generate_context!());
+
+  if let Err(e) = result {
+    if let Ok(local_app_data) = std::env::var("LOCALAPPDATA") {
+      let log_path = format!("{}\\com.boolstudio.desktop\\tauri_error.txt", local_app_data);
+      let _ = std::fs::write(log_path, format!("TAURI ERROR: {}\n", e));
+    }
+  }
 }

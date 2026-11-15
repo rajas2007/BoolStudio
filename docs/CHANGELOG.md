@@ -46,6 +46,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   - Enlarged expression input (18px+) with grouped symbol keypads (Sets, Operators, Brackets), natural English explanation, and non-intrusive inline status indicators.
 
 ### Fixed
+- **Windows Desktop WebView2 Multi-Instance Crash (`0x800700AA`)**: Implemented a Win32 named Mutex (`Local\BoolStudio_SingleInstance_Mutex`) in `src-tauri/src/main.rs`. Launching a second instance now brings the existing window to the foreground and exits cleanly with code 0 instead of panicking on WebView2 user data directory file lock collision.
+- **Panic & Crash Diagnostics**: Added runtime panic hooks and logging in `src-tauri/src/main.rs` and `lib.rs` capturing fatal errors to `%LOCALAPPDATA%\com.boolstudio.desktop\`.
+- **One-Click Launcher (`run-app.bat`)**: Added root batch launcher and `npm run app` script ensuring seamless launch from Explorer or terminal.
 - Replaced previous cluttered and broken graph-theory prototype with clean 2-column desktop split layout (Left ~60% Canvas + Toolbar, Right ~40% Active Topic Panel) and 9 ordered syllabus tabs.
 - Replaced stacked non-discrete Venn regions with exact SVG mask cutouts in Venn & Sets Lab.
 - Fixed false-positive error on "A U B" by contextually disambiguating "U" (union vs universal set).

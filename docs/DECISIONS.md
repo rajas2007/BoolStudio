@@ -91,3 +91,12 @@ Use this document to log significant engineering and architectural choices.
   3. Lock the interactive canvas and active topic panel into matched viewport heights with internal smooth scrollbars for dense algorithmic breakdowns.
 * **Reason**: User testing and desktop screenshots revealed excessive vertical scrolling where the canvas, toolbar, and algorithm step players were pushed out of the viewport.
 * **Consequences**: Dramatically improved educational UX and usability across both native Windows desktop and web viewports.
+
+---
+
+## [ADR-008] Windows Desktop Single-Instance Mutex & WebView2 Multi-Instance Crash Prevention
+* **Date**: 2026-11-15
+* **Status**: Approved
+* **Decision**: Implement a native Windows named Mutex (`Local\BoolStudio_SingleInstance_Mutex`) and window activation handler inside `src-tauri/src/main.rs`. When a second instance of BoolStudio is launched, it detects the existing running instance, brings the existing window to the foreground (`ShowWindow(hwnd, SW_RESTORE)` and `SetForegroundWindow`), and exits with code 0.
+* **Reason**: Microsoft Edge WebView2 locks its user data directory (`%LOCALAPPDATA%\com.boolstudio.desktop\EBWebView`). If a user double-clicks the desktop shortcut while an existing instance or orphaned child process is running, the second instance threw a fatal `0x800700AA` ("The requested resource is in use") panic on startup.
+* **Consequences**: Complete elimination of multi-instance startup crashes. Instant window focus restoration when opening the app repeatedly. Zero external crate bloat via lightweight Win32 API FFI.
