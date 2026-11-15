@@ -25,7 +25,7 @@ export const WORD_PROBLEMS: WordProblem[] = [
       cardA_B_C: 10,
     },
     targetQuestion: 'How many students take at least one course, and how many take none?',
-    targetRegionMasks: [1, 2, 3, 4, 5, 6, 7], // Union
+    targetRegionMasks: [1, 2, 3, 4, 5, 6, 7], // Union (all except outside m0)
     expectedAnswer: 85,
     explanation:
       'By the 3-set Inclusion-Exclusion formula: |A ∪ B ∪ C| = (45 + 50 + 40) − (25 + 20 + 15) + 10 = 135 − 60 + 10 = 85. The number of students taking none is |U| − 85 = 100 − 85 = 15.',
@@ -49,7 +49,7 @@ export const WORD_PROBLEMS: WordProblem[] = [
       cardA_B: 30,
     },
     targetQuestion: 'How many athletes play Football ONLY?',
-    targetRegionMasks: [1], // Only A
+    targetRegionMasks: [2], // 2-set A only is m2 (10)
     expectedAnswer: 40,
     explanation:
       'The number who play only football is |A| − |A ∩ B| = 70 − 30 = 40. Furthermore, total playing at least one is 70 + 55 − 30 = 95, meaning 120 − 95 = 25 play neither.',
@@ -78,7 +78,7 @@ export const WORD_PROBLEMS: WordProblem[] = [
       cardA_B_C: 20,
     },
     targetQuestion: 'How many engineers use Docker ONLY?',
-    targetRegionMasks: [1], // Only A
+    targetRegionMasks: [4], // 3-set A only is m4 (100)
     expectedAnswer: 30,
     explanation:
       'Region A only = |A| − (r_AB + r_AC + r_ABC) where r_AB = 45 − 20 = 25, r_AC = 35 − 20 = 15, and r_ABC = 20. Thus, A only = 90 − 25 − 15 − 20 = 30.',
@@ -107,7 +107,7 @@ export const WORD_PROBLEMS: WordProblem[] = [
       cardA_B_C: 15,
     },
     targetQuestion: 'How many students study EXACTLY TWO languages?',
-    targetRegionMasks: [3, 5, 6], // Pairwise disjoint intersections
+    targetRegionMasks: [3, 5, 6], // m3 (BC only), m5 (AC only), m6 (AB only)
     expectedAnswer: 30,
     explanation:
       'The pairwise-only regions are: Spanish & German only = 30 − 15 = 15; Spanish & French only = 25 − 15 = 10; German & French only = 20 − 15 = 5. Total studying exactly two = 15 + 10 + 5 = 30.',

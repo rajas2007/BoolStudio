@@ -1,31 +1,31 @@
 # Session Handoff
 
 ## 📌 Current Project Status
-- **Current Milestone**: Venn & Sets Lab Feature Implementation Complete
+- **Current Milestone**: Venn & Sets Lab Logic Fixes and UI Redesign Complete
 - **Current Branch**: `feature/venn-sets`
 
-## 🚀 Features Completed
-- [x] Implemented "Venn & Sets Lab" (`/venn-sets`) in a dedicated feature module (`src/features/venn-sets/`).
-- [x] Interactive SVG 2-Set and 3-Set Venn diagrams with clickable, keyboard-accessible regions, Universal set boundary $U$, and glowing outlines.
-- [x] Adapter translating set theory expressions ($\cup, \cap, ', \setminus, \triangle$) to BoolStudio Boolean ASTs without modifying core parser.
-- [x] Manual shading mode with real-time canonical sum-of-minterms expression calculation.
-- [x] Expression shading mode with live validation, quick keypad, and error diagnostics.
-- [x] Identity Checker with side-by-side visual diagrams, equivalence reason, counterexamples, and presets.
-- [x] Principle of Inclusion-Exclusion (PIE) calculator with step-by-step formula substitutions, exact disjoint region decomposition, and consistency violation checks.
-- [x] 4 real-world classroom word problems with hide/reveal answers and derivations.
-- [x] Bidirectional "Venn ↔ Truth table" minterm linkage.
-- [x] Single navigation link added to `src/components/layout/Navbar.tsx`.
-- [x] Third-party attribution documented in `docs/third-party/venn-sets.md`.
-- [x] Full static export (`npm run build`), strict TypeScript (`npx tsc --noEmit`), and zero ESLint errors/warnings verified.
-- [x] Full analysis of the existing Next.js App Router project architecture.
-- [x] Configured static export (`output: 'export'`, `trailingSlash: true`, `images: { unoptimized: true }`) in `next.config.ts`.
-- [x] Implemented dynamic chunk loading (`next/dynamic`) for workspace visualization tabs (`TruthTable`, `LogicCircuit`, `KMap`, `Simplification`, `LogicAnalysis`) in `src/components/Workspace/WorkspaceView.tsx`.
-- [x] Initialized and configured Tauri 2.0 (Rust) workspace with Microsoft Edge WebView2 integration.
-- [x] Configured native window geometry (1280x820, resizable, min 800x600, centered), restrictive CSP, and multi-resolution application icons.
-- [x] Added `tauri`, `tauri:dev`, and `tauri:build` scripts to `package.json` while preserving all original web development scripts (`dev`, `build`, `start`, `lint`).
-- [x] Compiled release executable (`boolstudio.exe`) and generated Windows NSIS setup package (`BoolStudio_0.1.0_x64-setup.exe`, ~2.07 MB).
-- [x] Validated desktop startup time (< 600ms), low RAM footprint (~46 MB), and clean shutdown.
-- [x] Updated `README.md`, `docs/ARCHITECTURE.md`, `docs/DECISIONS.md`, and `docs/CHANGELOG.md`.
+## 🚀 Features & Fixes Completed
+- [x] **Unified Evaluator Single Source of Truth**:
+  - Implemented standalone Set AST tokenizer and recursive descent parser (`src/features/venn-sets/lib/parser.ts`) with precedence: complement ($'$) > intersection ($\cap$) > union ($\cup$) = symmetric difference ($\triangle$) = difference ($\setminus$), left-associative.
+  - Normalized all token variants (`∪, U, u, |, "union"`, `∩, ^, &, "and"`, `', ᶜ, !, ~`, `\, -`, `Δ, ^^`).
+  - Contextual token disambiguation for the letter `"U"`: treated as union between operands, or as universal set when standalone.
+  - Re-anchored minterms to standard MSB-first ordering ($A$ as MSB [bit 2], $B$ as bit 1, $C$ as LSB [bit 0]):
+    $m_0=A'B'C', m_1=A'B'C, m_2=A'BC', m_3=A'BC, m_4=AB'C', m_5=AB'C, m_6=ABC', m_7=ABC$.
+  - Shading column in truth table, SVG diagram fills, identity checker, and PIE decomposition all driven by identical AST evaluator (`evaluateSetAST`).
+- [x] **UI Redesign**:
+  - 2-column desktop layout (LEFT: $\ge 480$px large Venn diagram, RIGHT: expression input and controls).
+  - Single rounded rectangle Universe with top-left italic "U" badge (removed inner nested box and redundant "Outside" label).
+  - Collapsible minterm truth table (collapsed by default).
+  - 3 primary quick-example chips with "More examples" toggle.
+  - Clean diagram: bold set labels ($A, B, C$) positioned outside circles, region labels shown via tooltip on hover or via "Show labels" toolbar toggle.
+  - Grouped 18px+ input buttons: Sets ($A, B, C$), Operators ($\cup, \cap, ', \setminus, \triangle$), Brackets ($($ and $)$).
+  - Plain English expression translation under the input.
+  - Clean inline syntax validation reporting original-string column indices.
+- [x] **Automated Testing & Static Verification**:
+  - 22 unit tests passing in `src/features/venn-sets/lib/evaluator.test.ts`.
+  - Zero TypeScript compiler errors (`npx tsc --noEmit`).
+  - Zero ESLint errors or warnings across touched files.
+  - Production static build and export succeeded (`npm run build`).
 
 ## 🚧 Features in Progress
 - None.
@@ -34,24 +34,32 @@
 - Optional: Add circuit export (PNG/SVG download) via Tauri native file dialogs.
 
 ## 📂 Files Created / Modified During This Session
-- [next.config.ts](file:///C:/Users/shravan/Documents/GitHub/BoolStudio/next.config.ts)
-- [package.json](file:///C:/Users/shravan/Documents/GitHub/BoolStudio/package.json)
-- [src/components/Workspace/WorkspaceView.tsx](file:///C:/Users/shravan/Documents/GitHub/BoolStudio/src/components/Workspace/WorkspaceView.tsx)
-- [src-tauri/Cargo.toml](file:///C:/Users/shravan/Documents/GitHub/BoolStudio/src-tauri/Cargo.toml)
-- [src-tauri/tauri.conf.json](file:///C:/Users/shravan/Documents/GitHub/BoolStudio/src-tauri/tauri.conf.json)
-- [src-tauri/src/main.rs](file:///C:/Users/shravan/Documents/GitHub/BoolStudio/src-tauri/src/main.rs)
-- [README.md](file:///C:/Users/shravan/Documents/GitHub/BoolStudio/README.md)
-- [docs/ARCHITECTURE.md](file:///C:/Users/shravan/Documents/GitHub/BoolStudio/docs/ARCHITECTURE.md)
+- [src/features/venn-sets/lib/parser.ts](file:///C:/Users/shravan/Documents/GitHub/BoolStudio/src/features/venn-sets/lib/parser.ts)
+- [src/features/venn-sets/lib/evaluator.ts](file:///C:/Users/shravan/Documents/GitHub/BoolStudio/src/features/venn-sets/lib/evaluator.ts)
+- [src/features/venn-sets/lib/evaluator.test.ts](file:///C:/Users/shravan/Documents/GitHub/BoolStudio/src/features/venn-sets/lib/evaluator.test.ts)
+- [src/features/venn-sets/types.ts](file:///C:/Users/shravan/Documents/GitHub/BoolStudio/src/features/venn-sets/types.ts)
+- [src/features/venn-sets/lib/regions.ts](file:///C:/Users/shravan/Documents/GitHub/BoolStudio/src/features/venn-sets/lib/regions.ts)
+- [src/features/venn-sets/components/venn-geometry.ts](file:///C:/Users/shravan/Documents/GitHub/BoolStudio/src/features/venn-sets/components/venn-geometry.ts)
+- [src/features/venn-sets/lib/inclusion-exclusion.ts](file:///C:/Users/shravan/Documents/GitHub/BoolStudio/src/features/venn-sets/lib/inclusion-exclusion.ts)
+- [src/features/venn-sets/lib/word-problems.ts](file:///C:/Users/shravan/Documents/GitHub/BoolStudio/src/features/venn-sets/lib/word-problems.ts)
+- [src/features/venn-sets/store/useVennLabStore.ts](file:///C:/Users/shravan/Documents/GitHub/BoolStudio/src/features/venn-sets/store/useVennLabStore.ts)
+- [src/features/venn-sets/components/RegionShape.tsx](file:///C:/Users/shravan/Documents/GitHub/BoolStudio/src/features/venn-sets/components/RegionShape.tsx)
+- [src/features/venn-sets/components/VennDiagram.tsx](file:///C:/Users/shravan/Documents/GitHub/BoolStudio/src/features/venn-sets/components/VennDiagram.tsx)
+- [src/features/venn-sets/components/TruthLinkPanel.tsx](file:///C:/Users/shravan/Documents/GitHub/BoolStudio/src/features/venn-sets/components/TruthLinkPanel.tsx)
+- [src/features/venn-sets/components/ExpressionShadingPanel.tsx](file:///C:/Users/shravan/Documents/GitHub/BoolStudio/src/features/venn-sets/components/ExpressionShadingPanel.tsx)
+- [src/features/venn-sets/components/VennSetsLab.tsx](file:///C:/Users/shravan/Documents/GitHub/BoolStudio/src/features/venn-sets/components/VennSetsLab.tsx)
 - [docs/DECISIONS.md](file:///C:/Users/shravan/Documents/GitHub/BoolStudio/docs/DECISIONS.md)
 - [docs/CHANGELOG.md](file:///C:/Users/shravan/Documents/GitHub/BoolStudio/docs/CHANGELOG.md)
+- [ai/SESSION_LOG.md](file:///C:/Users/shravan/Documents/GitHub/BoolStudio/ai/SESSION_LOG.md)
+- [ai/TASKS.md](file:///C:/Users/shravan/Documents/GitHub/BoolStudio/ai/TASKS.md)
 
 ## 🐛 Known Bugs & Limitations
-- None. K-Maps are constrained to $\le 4$ variables per logic design specification.
+- None.
 
 ## 🧪 Testing Status
-- Verified static web export (`npm run build`).
-- Verified full desktop release build (`npm run tauri:build`).
-- Verified executable execution and measured RAM/CPU metrics.
-
-## ⏭️ Recommended Next Task
-- Run `npm run tauri:dev` during development or run the generated NSIS installer (`src-tauri/target/release/bundle/nsis/BoolStudio_0.1.0_x64-setup.exe`) to install on Windows.
+- 22 unit tests passing (`npx tsx --test src/features/venn-sets/lib/evaluator.test.ts`).
+- Verified static export (`npm run build`).
+- Target expressions verified:
+  - `"A U B"` $\to$ shaded minterms: `[2, 3, 4, 5, 6, 7]`
+  - `"(A ∪ B ∪ C)'"` $\to$ shaded minterms: `[0]`
+  - `"A Δ B"` $\to$ shaded minterms: `[2, 3, 4, 5]`

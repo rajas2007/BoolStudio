@@ -11,6 +11,7 @@ interface RegionShapeProps {
   shortLabel: string;
   isShaded: boolean;
   isHovered: boolean;
+  showLabels?: boolean;
   countDisplay?: number | null;
   interactive?: boolean;
   onToggle?: (mask: RegionMask) => void;
@@ -25,6 +26,7 @@ export function RegionShape({
   shortLabel,
   isShaded,
   isHovered,
+  showLabels = false,
   countDisplay,
   interactive = true,
   onToggle,
@@ -43,26 +45,30 @@ export function RegionShape({
     }
   };
 
-  // Determine styling based on shading and hover states
-  let fill = 'rgba(15, 23, 42, 0.4)'; // subtle slate dark fill
-  let stroke = 'rgba(148, 163, 184, 0.25)'; // slate-400 subtle outline
+  // Visual appearance:
+  // Shaded: vibrant, opaque indigo fill so it pops clearly against dark background
+  // Unshaded: near-transparent
+  let fill = 'rgba(15, 23, 42, 0.15)';
+  let stroke = 'rgba(148, 163, 184, 0.25)';
   let strokeWidth = 1.5;
 
   if (isShaded) {
-    fill = isHovered ? 'rgba(99, 102, 241, 0.75)' : 'rgba(99, 102, 241, 0.55)';
-    stroke = '#a5b4fc'; // indigo-300
-    strokeWidth = 2;
+    fill = isHovered ? 'rgba(99, 102, 241, 0.9)' : 'rgba(99, 102, 241, 0.75)';
+    stroke = '#c7d2fe'; // indigo-200
+    strokeWidth = 2.5;
   } else if (isHovered) {
     fill = 'rgba(99, 102, 241, 0.25)';
     stroke = '#818cf8';
     strokeWidth = 2;
   }
 
-  // Special outside background styling
+  // Outside universe mask (mask 0)
   if (mask === 0 && !isShaded && !isHovered) {
-    fill = 'rgba(2, 6, 23, 0.3)';
-    stroke = 'rgba(71, 85, 105, 0.3)';
+    fill = 'rgba(2, 6, 23, 0.1)';
+    stroke = 'rgba(71, 85, 105, 0.25)';
   }
+
+  const shouldShowText = countDisplay !== undefined && countDisplay !== null ? true : showLabels;
 
   return (
     <g
@@ -86,44 +92,45 @@ export function RegionShape({
         className="transition-colors duration-150"
       />
 
-      {/* Region Center Label or Count */}
-      <g
-        transform={`translate(${labelPosition.x}, ${labelPosition.y})`}
-        className="pointer-events-none select-none"
-      >
-        {countDisplay !== undefined && countDisplay !== null ? (
-          <>
-            {/* Pill backdrop for number */}
-            <rect
-              x="-24"
-              y="-14"
-              width="48"
-              height="28"
-              rx="8"
-              fill="rgba(15, 23, 42, 0.85)"
-              stroke={isShaded ? '#818cf8' : 'rgba(255, 255, 255, 0.15)'}
-              strokeWidth="1"
-            />
+      {/* Region Label or Count only if toggled or count provided */}
+      {shouldShowText && (
+        <g
+          transform={`translate(${labelPosition.x}, ${labelPosition.y})`}
+          className="pointer-events-none select-none"
+        >
+          {countDisplay !== undefined && countDisplay !== null ? (
+            <>
+              <rect
+                x="-22"
+                y="-13"
+                width="44"
+                height="26"
+                rx="6"
+                fill="rgba(15, 23, 42, 0.9)"
+                stroke={isShaded ? '#a5b4fc' : 'rgba(255, 255, 255, 0.2)'}
+                strokeWidth="1"
+              />
+              <text
+                textAnchor="middle"
+                dominantBaseline="central"
+                className="text-xs font-mono font-bold fill-white"
+              >
+                {countDisplay}
+              </text>
+            </>
+          ) : (
             <text
               textAnchor="middle"
               dominantBaseline="central"
-              className="text-xs font-mono font-bold fill-white"
+              className={`text-[12px] font-sans font-bold transition-colors duration-150 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] ${
+                isShaded ? 'fill-white' : 'fill-slate-300'
+              }`}
             >
-              {countDisplay}
+              {shortLabel}
             </text>
-          </>
-        ) : (
-          <text
-            textAnchor="middle"
-            dominantBaseline="central"
-            className={`text-[11px] font-mono font-semibold transition-colors duration-150 ${
-              isShaded ? 'fill-white' : 'fill-slate-400'
-            }`}
-          >
-            {shortLabel}
-          </text>
-        )}
-      </g>
+          )}
+        </g>
+      )}
     </g>
   );
 }

@@ -2,6 +2,9 @@ import { InclusionExclusionInput, InclusionExclusionResult, RegionMask } from '.
 
 /**
  * Validates and computes exact region counts using the Principle of Inclusion-Exclusion.
+ * Uses unified MSB-first minterm indexing:
+ * - 3 Sets: m0=000, m1=001 (C), m2=010 (B), m3=011 (BC), m4=100 (A), m5=101 (AC), m6=110 (AB), m7=111 (ABC)
+ * - 2 Sets: m0=00, m1=01 (B), m2=10 (A), m3=11 (AB)
  */
 export function computeInclusionExclusion(
   input: InclusionExclusionInput
@@ -18,7 +21,11 @@ export function computeInclusionExclusion(
   }
 
   if (varCount === 2) {
-    // 2-Set checks
+    // 2-Set checks:
+    // m3 = A ∩ B (11)
+    // m2 = A only (10)
+    // m1 = B only (01)
+    // m0 = Outside (00)
     if (input.cardA_B > input.cardA) {
       violations.push(`|A ∩ B| (${input.cardA_B}) cannot exceed |A| (${input.cardA}).`);
     }
@@ -26,9 +33,9 @@ export function computeInclusionExclusion(
       violations.push(`|A ∩ B| (${input.cardA_B}) cannot exceed |B| (${input.cardB}).`);
     }
 
-    const r3 = input.cardA_B;
-    const r1 = input.cardA - input.cardA_B;
-    const r2 = input.cardB - input.cardA_B;
+    const r3 = input.cardA_B; // A ∩ B (m3)
+    const r2 = input.cardA - input.cardA_B; // A only (m2)
+    const r1 = input.cardB - input.cardA_B; // B only (m1)
     const unionCount = input.cardA + input.cardB - input.cardA_B;
 
     let r0: number | null = null;
@@ -61,16 +68,16 @@ export function computeInclusionExclusion(
         result: r3,
       },
       {
-        mask: 1,
+        mask: 2,
         label: "A only (A ∩ B')",
-        equation: `|A| − |A ∩ B| = ${input.cardA} − ${r3} = ${r1}`,
-        result: r1,
+        equation: `|A| − |A ∩ B| = ${input.cardA} − ${r3} = ${r2}`,
+        result: r2,
       },
       {
-        mask: 2,
+        mask: 1,
         label: "B only (A' ∩ B)",
-        equation: `|B| − |A ∩ B| = ${input.cardB} − ${r3} = ${r2}`,
-        result: r2,
+        equation: `|B| − |A ∩ B| = ${input.cardB} − ${r3} = ${r1}`,
+        result: r1,
       },
     ];
 
@@ -98,7 +105,15 @@ export function computeInclusionExclusion(
     };
   }
 
-  // 3-Set Inclusion-Exclusion
+  // 3-Set Inclusion-Exclusion:
+  // m7 = A ∩ B ∩ C (111)
+  // m6 = A ∩ B only (110)
+  // m5 = A ∩ C only (101)
+  // m3 = B ∩ C only (011)
+  // m4 = A only (100)
+  // m2 = B only (010)
+  // m1 = C only (001)
+  // m0 = Outside (000)
   const cardC = input.cardC ?? 0;
   const cardA_C = input.cardA_C ?? 0;
   const cardB_C = input.cardB_C ?? 0;
@@ -129,33 +144,32 @@ export function computeInclusionExclusion(
   }
 
   // Region calculations from inside out:
-  const r7 = cardA_B_C;
-  const r3 = input.cardA_B - r7; // A ∩ B only
-  const r5 = cardA_C - r7; // A ∩ C only
-  const r6 = cardB_C - r7; // B ∩ C only
+  const r7 = cardA_B_C; // m7 (ABC)
+  const r6 = input.cardA_B - r7; // m6 (AB only)
+  const r5 = cardA_C - r7; // m5 (AC only)
+  const r3 = cardB_C - r7; // m3 (BC only)
 
-  const r1 = input.cardA - r3 - r5 - r7; // A only
-  const r2 = input.cardB - r3 - r6 - r7; // B only
-  const r4 = cardC - r5 - r6 - r7; // C only
+  const r4 = input.cardA - r6 - r5 - r7; // m4 (A only)
+  const r2 = input.cardB - r6 - r3 - r7; // m2 (B only)
+  const r1 = cardC - r5 - r3 - r7; // m1 (C only)
 
-  if (r1 < 0) {
+  if (r4 < 0) {
     violations.push(
-      `Set A contains only ${input.cardA} items, but its shared overlaps require at least ${r3 + r5 + r7}.`
+      `Set A contains only ${input.cardA} items, but its shared overlaps require at least ${r6 + r5 + r7}.`
     );
   }
   if (r2 < 0) {
     violations.push(
-      `Set B contains only ${input.cardB} items, but its shared overlaps require at least ${r3 + r6 + r7}.`
+      `Set B contains only ${input.cardB} items, but its shared overlaps require at least ${r6 + r3 + r7}.`
     );
   }
-  if (r4 < 0) {
+  if (r1 < 0) {
     violations.push(
-      `Set C contains only ${cardC} items, but its shared overlaps require at least ${r5 + r6 + r7}.`
+      `Set C contains only ${cardC} items, but its shared overlaps require at least ${r5 + r3 + r7}.`
     );
   }
 
   // Full Inclusion-Exclusion formula for 3 sets:
-  // |A ∪ B ∪ C| = (|A| + |B| + |C|) − (|A ∩ B| + |A ∩ C| + |B ∩ C|) + |A ∩ B ∩ C|
   const sumSingles = input.cardA + input.cardB + cardC;
   const sumPairs = input.cardA_B + cardA_C + cardB_C;
   const unionCount = sumSingles - sumPairs + cardA_B_C;
@@ -197,10 +211,10 @@ export function computeInclusionExclusion(
       result: r7,
     },
     {
-      mask: 3,
+      mask: 6,
       label: 'A ∩ B only (no C)',
-      equation: `|A ∩ B| − |A ∩ B ∩ C| = ${input.cardA_B} − ${r7} = ${r3}`,
-      result: r3,
+      equation: `|A ∩ B| − |A ∩ B ∩ C| = ${input.cardA_B} − ${r7} = ${r6}`,
+      result: r6,
     },
     {
       mask: 5,
@@ -209,28 +223,28 @@ export function computeInclusionExclusion(
       result: r5,
     },
     {
-      mask: 6,
+      mask: 3,
       label: 'B ∩ C only (no A)',
-      equation: `|B ∩ C| − |A ∩ B ∩ C| = ${cardB_C} − ${r7} = ${r6}`,
-      result: r6,
+      equation: `|B ∩ C| − |A ∩ B ∩ C| = ${cardB_C} − ${r7} = ${r3}`,
+      result: r3,
     },
     {
-      mask: 1,
+      mask: 4,
       label: 'A only',
-      equation: `|A| − (r3 + r5 + r7) = ${input.cardA} − (${r3} + ${r5} + ${r7}) = ${r1}`,
-      result: r1,
+      equation: `|A| − (r6 + r5 + r7) = ${input.cardA} − (${r6} + ${r5} + ${r7}) = ${r4}`,
+      result: r4,
     },
     {
       mask: 2,
       label: 'B only',
-      equation: `|B| − (r3 + r6 + r7) = ${input.cardB} − (${r3} + ${r6} + ${r7}) = ${r2}`,
+      equation: `|B| − (r6 + r3 + r7) = ${input.cardB} − (${r6} + ${r3} + ${r7}) = ${r2}`,
       result: r2,
     },
     {
-      mask: 4,
+      mask: 1,
       label: 'C only',
-      equation: `|C| − (r5 + r6 + r7) = ${cardC} − (${r5} + ${r6} + ${r7}) = ${r4}`,
-      result: r4,
+      equation: `|C| − (r5 + r3 + r7) = ${cardC} − (${r5} + ${r3} + ${r7}) = ${r1}`,
+      result: r1,
     },
   ];
 

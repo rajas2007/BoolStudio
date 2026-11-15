@@ -19,6 +19,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Navigation entry for "Venn & Sets" in `src/components/layout/Navbar.tsx`.
 - Third-party attribution documentation in `docs/third-party/venn-sets.md`.
 
+### Changed
+- **Venn & Sets Lab UI Redesign**:
+  - Implemented 2-column desktop layout (large $\ge 480$px Venn diagram on left, expression input and controls on right).
+  - Streamlined Universal Set $U$ container to a single rounded rectangle with top-left italic "U" badge (removed nested inner box and redundant "Outside" label).
+  - Converted Truth Table into a collapsible accordion section (collapsed by default).
+  - Reduced default quick-example chips to 3 primary chips with a clean "More examples" toggle.
+  - Set labels ($A, B, C$) moved outside circles in bold font; internal region text removed by default (available via hover tooltip or "Show labels" toggle).
+  - Shaded regions use high-contrast bright indigo fill (`rgba(99, 102, 241, 0.75)` / `0.9` hover) with semi-transparent circle outlines and legend "Shaded = in result".
+  - Enlarged expression input (18px+) with grouped symbol keypads (Sets, Operators, Brackets), natural English explanation, and non-intrusive inline status indicators.
+
+### Fixed
+- **Single Source of Truth Evaluator & Parser Rewrite**:
+  - Rewrote expression tokenizer and recursive descent parser with strict precedence ($' > \cap > \cup = \triangle = \setminus$) and left-associativity.
+  - Unified input normalization supporting symbols ($\cup, \cap, ', \setminus, \triangle$) and text/ASCII aliases (`"union"`, `"and"`, `|`, `&`, `!`, `~`, `\`, `-`, `^^`).
+  - Fixed false-positive error on "A U B" by contextually disambiguating "U" (union vs universal set).
+  - Precise syntax error diagnosis with exact index mapping in the original input string.
+  - Corrected minterm indexing to standard MSB-first ($A$ is MSB, $C$ is LSB; $m_1 = A'B'C$, $m_4 = AB'C'$), eliminating inverted region shading in the diagram and truth table.
+  - Added full test suite with 22 unit tests validating parser cases and hand-computed expected minterm sets.
+
 ---
 
 ## [1.1.0] - 2026-11-05

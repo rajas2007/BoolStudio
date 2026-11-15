@@ -2,6 +2,8 @@ export * from './types';
 export * from './components/VennSetsLab';
 export * from './components/VennDiagram';
 export * from './store/useVennLabStore';
+export * from './lib/parser';
+export * from './lib/evaluator';
 export * from './lib/set-adapter';
 export * from './lib/regions';
 export * from './lib/shading';

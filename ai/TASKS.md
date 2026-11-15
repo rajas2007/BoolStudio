@@ -1,6 +1,15 @@
 # Task Board
 
 ## 📋 Completed
+- [x] Fix Venn & Sets Lab logic and redesign UI (`feature/venn-sets`):
+  - Single source of truth Set AST parser and evaluator with exact operator precedence and token normalization.
+  - Fix bogus error on "A U B" through contextual token lookback.
+  - Standard MSB-first minterm indexing ($m_1 = A'B'C, m_4 = AB'C'$) matching SVG paths and truth table rows.
+  - 2-column desktop layout (large $\ge 480$px diagram, clean single Universe $U$ box).
+  - Collapsible minterm truth table (collapsed by default).
+  - 3 primary quick-example chips with "More examples" toggle.
+  - External bold set labels, hover tooltips, and grouped 18px+ symbol keypads.
+  - 22 unit tests passing (`src/features/venn-sets/lib/evaluator.test.ts`).
 - [x] Implement Venn & Sets Lab feature (`feature/venn-sets`):
   - Types committed first in `src/features/venn-sets/types.ts`.
   - Pure domain modules in `src/features/venn-sets/lib/` (`set-adapter.ts`, `regions.ts`, `shading.ts`, `identities.ts`, `inclusion-exclusion.ts`, `word-problems.ts`).

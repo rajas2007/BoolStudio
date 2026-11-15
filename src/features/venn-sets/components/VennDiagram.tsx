@@ -5,6 +5,7 @@ import { RegionMask, RegionShading, SetVarCount } from '../types';
 import { getVennGeometry } from './venn-geometry';
 import { RegionShape } from './RegionShape';
 import { getRegionInfoList } from '../lib/regions';
+import { Eye, EyeOff } from 'lucide-react';
 
 interface VennDiagramProps {
   varCount: SetVarCount;
@@ -12,6 +13,8 @@ interface VennDiagramProps {
   hoveredMask?: RegionMask | null;
   regionCounts?: Record<RegionMask, number>;
   interactive?: boolean;
+  showLabels?: boolean;
+  onToggleLabels?: () => void;
   onToggleRegion?: (mask: RegionMask) => void;
   onHoverRegion?: (mask: RegionMask | null) => void;
   customSetNames?: { A?: string; B?: string; C?: string };
@@ -23,6 +26,8 @@ export function VennDiagram({
   hoveredMask = null,
   regionCounts,
   interactive = true,
+  showLabels = false,
+  onToggleLabels,
   onToggleRegion,
   onHoverRegion,
   customSetNames,
@@ -34,28 +39,33 @@ export function VennDiagram({
   const viewBox = varCount === 2 ? '0 0 600 420' : '0 0 600 460';
 
   return (
-    <div className="w-full flex flex-col items-center">
-      <div className="relative w-full max-w-[620px] aspect-[4/3] rounded-2xl overflow-hidden glass-panel border border-slate-800/80 bg-slate-950/70 p-3 flex items-center justify-center shadow-xl">
+    <div className="w-full flex flex-col items-center gap-2">
+      {/* Venn Diagram Container */}
+      <div className="relative w-full min-w-[320px] max-w-[560px] aspect-[4/3] rounded-2xl overflow-hidden glass-panel border border-slate-800 bg-slate-950/80 p-2 shadow-2xl">
         <svg
           viewBox={viewBox}
           className="w-full h-full select-none"
           xmlns="http://www.w3.org/2000/svg"
         >
-          <defs>
-            {/* Glow filters */}
-            <filter id="glow-indigo" x="-20%" y="-20%" width="140%" height="140%">
-              <feGaussianBlur stdDeviation="4" result="blur" />
-              <feComposite in="SourceGraphic" in2="blur" operator="over" />
-            </filter>
-          </defs>
+          {/* Universal Set (U) Boundary Rectangle */}
+          <rect
+            x="20"
+            y="20"
+            width="560"
+            height={varCount === 2 ? 380 : 420}
+            rx="16"
+            fill="none"
+            stroke="rgba(148, 163, 184, 0.2)"
+            strokeWidth="1.5"
+          />
 
-          {/* Universal Set Rectangle Label */}
+          {/* Small Universal Set symbol in top-left corner */}
           <text
-            x="38"
-            y="50"
-            className="text-xs font-mono font-bold fill-slate-400 select-none"
+            x="36"
+            y="48"
+            className="text-base font-serif italic font-bold fill-slate-400 select-none"
           >
-            Universal Set (U)
+            U
           </text>
 
           {/* Render All Disjoint Regions */}
@@ -75,6 +85,7 @@ export function VennDiagram({
                 shortLabel={info?.shortLabel ?? reg.defaultName}
                 isShaded={isShaded}
                 isHovered={isHovered}
+                showLabels={showLabels}
                 countDisplay={countDisplay}
                 interactive={interactive}
                 onToggle={onToggleRegion}
@@ -83,7 +94,7 @@ export function VennDiagram({
             );
           })}
 
-          {/* Circle Boundary Outlines (rendered on top for crisp visual distinction) */}
+          {/* Circle Boundary Outlines: 3 distinct colors with ~35% opacity stroke */}
           {geometry.circles.map((c) => {
             const displayName =
               c.id === 'A'
@@ -101,14 +112,14 @@ export function VennDiagram({
                   fill="none"
                   stroke={c.color}
                   strokeWidth="2.5"
-                  strokeOpacity="0.85"
+                  strokeOpacity="0.45"
                 />
-                {/* Set Title Pill */}
+                {/* Bold Set Name outside circle */}
                 <text
                   x={c.labelPos.x}
                   y={c.labelPos.y}
                   textAnchor="middle"
-                  className="text-sm font-bold font-sans fill-white filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]"
+                  className="text-base font-bold font-sans fill-white filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]"
                 >
                   {displayName}
                 </text>
@@ -116,6 +127,25 @@ export function VennDiagram({
             );
           })}
         </svg>
+      </div>
+
+      {/* Legend & Controls Toolbar under diagram */}
+      <div className="w-full max-w-[560px] flex items-center justify-between px-2 text-xs text-slate-400">
+        <div className="flex items-center gap-2">
+          <span className="w-3.5 h-3.5 rounded bg-indigo-600 border border-indigo-400/50 shadow-sm shadow-indigo-500/50" />
+          <span className="font-medium text-slate-300">Shaded = in result</span>
+        </div>
+
+        {onToggleLabels && (
+          <button
+            type="button"
+            onClick={onToggleLabels}
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 transition-colors"
+          >
+            {showLabels ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+            <span>{showLabels ? 'Hide labels' : 'Show labels'}</span>
+          </button>
+        )}
       </div>
     </div>
   );

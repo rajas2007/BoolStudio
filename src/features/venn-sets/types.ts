@@ -2,18 +2,27 @@
  * Core type definitions for the Venn & Sets Lab feature.
  */
 
-import { ASTNode } from '@/lib/types/boolean';
-
 export type SetVarCount = 2 | 3;
 
 /**
- * A region in an n-set Venn diagram is represented as an integer bitmask:
- * - Bit 0 (1): element belongs to set A
- * - Bit 1 (2): element belongs to set B
- * - Bit 2 (4): element belongs to set C (in 3-set diagrams)
+ * A region in an n-set Venn diagram is represented as an integer minterm bitmask:
+ * Bits are ordered A B C with A as the most significant bit (MSB).
  *
- * For 2 sets: masks are 0 (outside), 1 (only A), 2 (only B), 3 (A ∩ B).
- * For 3 sets: masks range from 0 (outside) to 7 (A ∩ B ∩ C).
+ * For 3 sets (A, B, C):
+ * - m0 = 000: A' ∩ B' ∩ C' (Outside)
+ * - m1 = 001: A' ∩ B' ∩ C  (C only)
+ * - m2 = 010: A' ∩ B ∩ C'  (B only)
+ * - m3 = 011: A' ∩ B ∩ C   (B ∩ C only)
+ * - m4 = 100: A ∩ B' ∩ C'  (A only)
+ * - m5 = 101: A ∩ B' ∩ C   (A ∩ C only)
+ * - m6 = 110: A ∩ B ∩ C'   (A ∩ B only)
+ * - m7 = 111: A ∩ B ∩ C    (A ∩ B ∩ C)
+ *
+ * For 2 sets (A, B):
+ * - m0 = 00: A' ∩ B' (Outside)
+ * - m1 = 01: A' ∩ B  (B only)
+ * - m2 = 10: A ∩ B'  (A only)
+ * - m3 = 11: A ∩ B   (A ∩ B)
  */
 export type RegionMask = number;
 
@@ -27,8 +36,8 @@ export type RegionShading = Record<RegionMask, boolean>;
  */
 export interface RegionInfo {
   mask: RegionMask;
-  label: string; // e.g. "A ∩ B' ∩ C" or "Outside (U \ (A ∪ B))"
-  shortLabel: string; // e.g. "A only", "A ∩ B", "Outside"
+  label: string; // e.g. "A ∩ B' ∩ C" or "A' ∩ B' ∩ C'"
+  shortLabel: string; // e.g. "A only", "A ∩ B only", "Outside"
   mintermIndex: number;
   binaryString: string; // e.g. "101"
   inA: boolean;
@@ -37,16 +46,31 @@ export interface RegionInfo {
 }
 
 /**
- * Result of adapting and parsing a set theory expression.
+ * AST Node representing a set-theoretic expression.
+ */
+export type SetASTNode =
+  | { type: 'VARIABLE'; name: 'A' | 'B' | 'C' }
+  | { type: 'EMPTY_SET' }
+  | { type: 'UNIVERSAL_SET' }
+  | { type: 'COMPLEMENT'; child: SetASTNode }
+  | { type: 'INTERSECTION'; left: SetASTNode; right: SetASTNode }
+  | { type: 'UNION'; left: SetASTNode; right: SetASTNode }
+  | { type: 'DIFFERENCE'; left: SetASTNode; right: SetASTNode }
+  | { type: 'SYMMETRIC_DIFFERENCE'; left: SetASTNode; right: SetASTNode };
+
+/**
+ * Result of parsing and evaluating a set expression.
  */
 export interface ParsedSetExpr {
   originalExpr: string;
-  adaptedBoolExpr: string;
-  ast: ASTNode | null;
+  normalizedExpr: string;
+  ast: SetASTNode | null;
   variables: string[];
   valid: boolean;
   error?: string;
+  errorIndex?: number;
   shadedMasks: number[];
+  plainEnglish: string;
 }
 
 /**
@@ -140,8 +164,8 @@ export interface WordProblem {
  * Top-level view tabs inside the Venn & Sets Lab.
  */
 export type VennLabTab =
-  | 'manual'
   | 'expression'
+  | 'manual'
   | 'identity'
   | 'inclusion-exclusion'
   | 'word-problems';

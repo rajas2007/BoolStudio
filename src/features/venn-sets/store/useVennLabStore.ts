@@ -10,7 +10,7 @@ import {
   VennLabTab,
 } from '../types';
 import { clearShading, fillAllShading, invertShading, masksToShadingMap, toggleRegion } from '../lib/shading';
-import { parseSetExpression } from '../lib/set-adapter';
+import { parseAndEvaluate } from '../lib/evaluator';
 import { compareSetExpressions, SET_IDENTITY_PRESETS } from '../lib/identities';
 import { computeInclusionExclusion } from '../lib/inclusion-exclusion';
 import { WORD_PROBLEMS } from '../lib/word-problems';
@@ -19,6 +19,7 @@ interface VennLabState {
   varCount: SetVarCount;
   activeTab: VennLabTab;
   hoveredMask: RegionMask | null;
+  showLabels: boolean;
 
   // Manual Shading Tab
   manualShading: RegionShading;
@@ -45,6 +46,7 @@ interface VennLabState {
   setVarCount: (count: SetVarCount) => void;
   setActiveTab: (tab: VennLabTab) => void;
   setHoveredMask: (mask: RegionMask | null) => void;
+  toggleShowLabels: () => void;
 
   toggleManualRegion: (mask: RegionMask) => void;
   clearManualShading: () => void;
@@ -78,8 +80,8 @@ const initialPieInput: InclusionExclusionInput = {
 
 export const useVennLabStore = create<VennLabState>((set, get) => {
   const initialVarCount: SetVarCount = 3;
-  const initialExpr = 'A ∩ (B ∪ C)';
-  const initialParsed = parseSetExpression(initialExpr, initialVarCount);
+  const initialExpr = 'A ∪ B';
+  const initialParsed = parseAndEvaluate(initialExpr, initialVarCount);
 
   const initialLeft = "(A ∪ B)'";
   const initialRight = "A' ∩ B'";
@@ -91,9 +93,10 @@ export const useVennLabStore = create<VennLabState>((set, get) => {
     varCount: initialVarCount,
     activeTab: 'expression',
     hoveredMask: null,
+    showLabels: false,
 
     // Manual Shading
-    manualShading: masksToShadingMap([1, 3], initialVarCount),
+    manualShading: masksToShadingMap([4, 6], initialVarCount),
 
     // Expression Shading
     expressionText: initialExpr,
@@ -115,9 +118,7 @@ export const useVennLabStore = create<VennLabState>((set, get) => {
 
     setVarCount: (count) => {
       const state = get();
-      // Re-parse expression with new var count
-      const parsed = parseSetExpression(state.expressionText, count);
-      // Re-calculate PIE with new var count
+      const parsed = parseAndEvaluate(state.expressionText, count);
       const updatedPieInput: InclusionExclusionInput =
         count === 2
           ? {
@@ -152,6 +153,8 @@ export const useVennLabStore = create<VennLabState>((set, get) => {
 
     setHoveredMask: (mask) => set({ hoveredMask: mask }),
 
+    toggleShowLabels: () => set((state) => ({ showLabels: !state.showLabels })),
+
     toggleManualRegion: (mask) => {
       const current = get().manualShading;
       set({ manualShading: toggleRegion(current, mask) });
@@ -173,14 +176,14 @@ export const useVennLabStore = create<VennLabState>((set, get) => {
     setManualShading: (shading) => set({ manualShading: shading }),
 
     setExpressionText: (text) => {
-      const parsed = parseSetExpression(text, get().varCount);
+      const parsed = parseAndEvaluate(text, get().varCount);
       set({ expressionText: text, parsedExpr: parsed });
     },
 
     insertSymbolIntoExpression: (symbol) => {
       const current = get().expressionText;
       const updated = current + symbol;
-      const parsed = parseSetExpression(updated, get().varCount);
+      const parsed = parseAndEvaluate(updated, get().varCount);
       set({ expressionText: updated, parsedExpr: parsed });
     },
 

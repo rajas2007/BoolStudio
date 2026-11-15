@@ -47,3 +47,16 @@ Use this document to log significant engineering and architectural decisions. Do
   3. Complies with Tauri strict CSP and Next.js static export (`output: 'export'`) by generating SVG paths natively without third-party chart dependencies (e.g. Chart.js, D3).
 * **Alternatives Considered**: Using Chart.js / `chartjs-chart-venn` (rejected due to external dependency constraint and strict CSP rules), writing a separate set parser from scratch (rejected to prevent duplicate parsing logic).
 * **Consequences**: Adding set operators is handled in the adapter. The feature is 100% client-side, offline-capable, and decoupled from the main Boolean Studio store.
+
+---
+
+## [ADR-005] Venn & Sets Lab Single-Source Evaluator & MSB Minterm Mapping
+* **Date**: 2026-11-15
+* **Status**: Approved
+* **Decision**: Implement a unified, standalone Set AST evaluator (`src/features/venn-sets/lib/parser.ts` and `src/features/venn-sets/lib/evaluator.ts`) that serves as the single source of truth across Venn diagram shading, minterm truth tables, example presets, and identity verification. Establish standard MSB-first minterm indexing: in 3 sets, bit 2 is A, bit 1 is B, bit 0 is C ($m_0=A'B'C', m_1=A'B'C, \dots, m_7=ABC$).
+* **Reason**:
+  1. Previously, an LSB-first index caused inverted mapping between $m_1$ ($C$ only in table vs $A$ only in diagram).
+  2. Disambiguating the letter "U" (union operator vs universal set) requires grammar-level lookback rather than naive string replacement.
+  3. Having a single evaluator guarantees mathematical consistency: the exact boolean result on each minterm bit vector dictates both the Venn region fill and the truth table row.
+* **Alternatives Considered**: Modifying global Boolean parser in `src/lib/parser/` (rejected to maintain zero edits on existing code).
+* **Consequences**: Exact bit-level parity between SVG paths, truth table rows, and PIE equations. 100% pure TypeScript with comprehensive unit test coverage.
