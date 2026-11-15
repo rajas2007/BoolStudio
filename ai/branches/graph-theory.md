@@ -104,6 +104,16 @@ This document contains ready-to-paste sections for the shared documentation file
 * **Reason**: Prevents coupling with the existing Boolean Algebra engine (`useBooleanStudio`) and ensures zero impact on existing truth table and circuit simulator performance while adhering to strict Tauri CSP (no external script/physics dependencies).
 * **Alternatives Considered**: Integrating graph states into `useBooleanStudio` or utilizing third-party graph layout engines.
 * **Consequences**: Pure SVG and deterministic circular layouts guarantee instant zero-latency rendering and 100% compatibility with static export (`output: 'export'`).
+
+---
+
+## [ADR-005] Euler Graph Connectivity Convention
+* **Date**: 2026-11-15
+* **Status**: Approved
+* **Decision**: Adopt the standard discrete mathematics convention that isolated vertices (degree 0) do not prevent the existence of an Eulerian trail or circuit, provided all non-trivial edges belong to a single connected component.
+* **Reason**: Standard theorem formulations require that all edges of the graph be traversable; isolated vertices contribute zero edges to the traversal. The UI explicitly discloses this convention: "Isolated vertices are ignored; some textbooks require the whole graph to be connected".
+* **Alternatives Considered**: Requiring the entire graph (including isolated vertices) to be strictly connected.
+* **Consequences**: Matches classical Euler theorem formulations where all edges reside in a single component.
 ```
 
 ---

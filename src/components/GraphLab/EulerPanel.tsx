@@ -226,6 +226,9 @@ export function EulerPanel() {
             <strong>Hierholzer&apos;s Algorithm:</strong> Efficiently finds an Eulerian
             path in O(|E|) time by iteratively constructing sub-circuits and merging them.
           </li>
+          <li>
+            <strong>Connectivity Convention:</strong> Isolated vertices are ignored; some textbooks require the whole graph to be connected.
+          </li>
         </ul>
       </div>
     </div>
