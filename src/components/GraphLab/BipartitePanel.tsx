@@ -27,42 +27,39 @@ export function BipartitePanel() {
   }, [graph.vertices]);
 
   return (
-    <div className="flex flex-col gap-6 text-slate-200">
+    <div className="flex flex-col gap-3 text-slate-200">
       {/* Header & Definition */}
-      <div className="flex flex-col gap-2 pb-4 border-b border-slate-800">
+      <div className="flex flex-col gap-1.5 pb-2 border-b border-slate-800">
         <div className="flex items-center justify-between flex-wrap gap-2">
-          <span className="text-xs font-bold uppercase tracking-wider text-indigo-400">
-            Syllabus Unit 6 • Topic 6
+          <span className="text-[11px] font-bold uppercase tracking-wider text-indigo-400">
+            Syllabus Unit 6 • Topic 6: Bipartite Graphs &amp; 2-Colouring
           </span>
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1">
             <button
               type="button"
               onClick={() => loadPreset('k_mn', 3, 3)}
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-600/20 text-indigo-300 hover:bg-indigo-600/30 border border-indigo-500/30 text-xs font-medium transition-colors"
+              className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-indigo-600/20 text-indigo-300 hover:bg-indigo-600/30 border border-indigo-500/30 text-[11px] font-medium transition-colors"
             >
-              <RotateCcw className="w-3 h-3" />
-              <span>Try K₃,₃</span>
+              <RotateCcw className="w-2.5 h-2.5" />
+              <span>K₃,₃</span>
             </button>
             <button
               type="button"
               onClick={() => loadPreset('cycle')}
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium transition-colors"
+              className="px-2 py-0.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-medium transition-colors"
             >
               <span>Cycle (C₅)</span>
             </button>
           </div>
         </div>
-        <h2 className="text-lg font-bold text-white">Bipartite Graphs &amp; 2-Colouring</h2>
-        <p className="text-xs text-slate-400 leading-relaxed">
-          A graph is <strong>Bipartite</strong> (or 2-colourable) if its vertices can be partitioned into two
-          independent sets <code className="text-indigo-300">Set A</code> and{' '}
-          <code className="text-emerald-300">Set B</code> such that every edge connects a vertex in A to a vertex in B.
+        <p className="text-[11px] text-slate-400 leading-snug">
+          A graph is <strong>Bipartite</strong> iff it contains no odd cycle. Vertices partition into independent sets <code className="text-indigo-300">A</code> and <code className="text-emerald-300">B</code>.
         </p>
       </div>
 
       {/* Main Status Banner */}
       <div
-        className={`p-4 rounded-xl border flex items-center justify-between flex-wrap gap-3 ${
+        className={`p-3 rounded-xl border flex items-center justify-between flex-wrap gap-2 ${
           data.isBipartite
             ? 'bg-emerald-950/20 border-emerald-500/30'
             : 'bg-rose-950/20 border-rose-500/30'

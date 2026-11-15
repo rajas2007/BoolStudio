@@ -66,32 +66,31 @@ export function EulerPanel() {
   const hasSolution = data.hasCircuit || data.hasTrail;
 
   return (
-    <div className="flex flex-col gap-6 text-slate-200">
+    <div className="flex flex-col gap-3 text-slate-200">
       {/* Header & Definition */}
-      <div className="flex flex-col gap-2 pb-4 border-b border-slate-800">
+      <div className="flex flex-col gap-1.5 pb-2 border-b border-slate-800">
         <div className="flex items-center justify-between flex-wrap gap-2">
-          <span className="text-xs font-bold uppercase tracking-wider text-indigo-400">
-            Syllabus Unit 6 • Topic 3
+          <span className="text-[11px] font-bold uppercase tracking-wider text-indigo-400">
+            Syllabus Unit 6 • Topic 3: Euler Tours &amp; Trails
           </span>
           <button
             type="button"
             onClick={() => loadPreset('cycle')}
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-600/20 text-indigo-300 hover:bg-indigo-600/30 border border-indigo-500/30 text-xs font-medium transition-colors"
+            className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-indigo-600/20 text-indigo-300 hover:bg-indigo-600/30 border border-indigo-500/30 text-[11px] font-medium transition-colors"
           >
-            <RotateCcw className="w-3 h-3" />
+            <RotateCcw className="w-2.5 h-2.5" />
             <span>Try Cycle (C₅)</span>
           </button>
         </div>
-        <h2 className="text-lg font-bold text-white">Euler Tours &amp; Trails</h2>
-        <p className="text-xs text-slate-400 leading-relaxed">
-          An <strong>Eulerian Circuit</strong> traverses every edge exactly once and returns to the start vertex.
-          An <strong>Eulerian Trail</strong> traverses every edge exactly once but starts and ends at distinct vertices.
+        <p className="text-[11px] text-slate-400 leading-snug">
+          An <strong>Eulerian Circuit</strong> traverses every edge once and returns to the start.
+          An <strong>Eulerian Trail</strong> traverses every edge once with distinct start and end vertices.
         </p>
       </div>
 
       {/* Existence Status Banner */}
       <div
-        className={`p-4 rounded-xl border flex items-center justify-between flex-wrap gap-3 ${
+        className={`p-3 rounded-xl border flex items-center justify-between flex-wrap gap-2 ${
           data.hasCircuit
             ? 'bg-emerald-950/20 border-emerald-500/30'
             : data.hasTrail
@@ -151,19 +150,19 @@ export function EulerPanel() {
 
       {/* Hierholzer's Algorithm Step Player */}
       {hasSolution && steps.length > 0 && (
-        <div className="p-4 rounded-xl bg-slate-900/50 border border-slate-800 flex flex-col gap-3">
+        <div className="p-3 rounded-xl bg-slate-900/50 border border-slate-800 flex flex-col gap-2">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-emerald-400" />
-              <h3 className="text-sm font-bold text-white">Hierholzer&apos;s Step Player</h3>
+            <div className="flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+              <h3 className="text-xs font-bold text-white">Hierholzer&apos;s Step Player</h3>
             </div>
-            <span className="text-xs font-mono text-slate-400">
+            <span className="text-[11px] font-mono text-slate-400">
               Step <strong className="text-white">{eulerStepIndex}</strong> of {maxStep}
             </span>
           </div>
 
           {/* Current Step Description */}
-          <div className="p-2.5 rounded-lg bg-slate-950 border border-slate-800 text-xs text-emerald-300 font-mono">
+          <div className="p-2 rounded-lg bg-slate-950 border border-slate-800 text-[11px] text-emerald-300 font-mono">
             {steps[eulerStepIndex]?.description || 'Step complete'}
           </div>
 
@@ -174,61 +173,61 @@ export function EulerPanel() {
             max={maxStep}
             value={eulerStepIndex}
             onChange={(e) => setEulerStepIndex(Number(e.target.value))}
-            className="w-full accent-emerald-500 cursor-pointer"
+            className="w-full accent-emerald-500 cursor-pointer h-1.5"
           />
 
           {/* Player controls */}
-          <div className="flex items-center justify-center gap-2">
+          <div className="flex items-center justify-center gap-1.5 pt-0.5">
             <button
               type="button"
               onClick={() => setEulerStepIndex(0)}
               disabled={eulerStepIndex === 0}
-              className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-30 text-white transition-colors"
+              className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-30 text-white transition-colors"
               title="First step"
             >
-              <SkipBack className="w-4 h-4" />
+              <SkipBack className="w-3.5 h-3.5" />
             </button>
             <button
               type="button"
               onClick={prevEulerStep}
               disabled={eulerStepIndex === 0}
-              className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-30 text-white transition-colors"
+              className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-30 text-white transition-colors"
               title="Previous step"
             >
-              <ChevronLeft className="w-4 h-4" />
+              <ChevronLeft className="w-3.5 h-3.5" />
             </button>
             <button
               type="button"
               onClick={toggleEulerPlayback}
-              className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs flex items-center gap-1.5 transition-colors shadow-md shadow-emerald-600/20"
+              className="px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs flex items-center gap-1 transition-colors shadow-md shadow-emerald-600/20"
             >
-              {isEulerPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+              {isEulerPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
               <span>{isEulerPlaying ? 'Pause' : 'Play'}</span>
             </button>
             <button
               type="button"
               onClick={() => nextEulerStep(maxStep)}
               disabled={eulerStepIndex >= maxStep}
-              className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-30 text-white transition-colors"
+              className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-30 text-white transition-colors"
               title="Next step"
             >
-              <ChevronRight className="w-4 h-4" />
+              <ChevronRight className="w-3.5 h-3.5" />
             </button>
             <button
               type="button"
               onClick={() => setEulerStepIndex(maxStep)}
               disabled={eulerStepIndex >= maxStep}
-              className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-30 text-white transition-colors"
+              className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-30 text-white transition-colors"
               title="Last step"
             >
-              <SkipForward className="w-4 h-4" />
+              <SkipForward className="w-3.5 h-3.5" />
             </button>
           </div>
 
           {/* Full Sequence Display */}
-          <div className="pt-2 border-t border-slate-800 text-xs">
-            <span className="text-slate-400 block mb-1">Full Traversal Sequence:</span>
-            <div className="font-mono text-xs text-emerald-300 break-words bg-slate-950 p-2.5 rounded-lg border border-slate-800">
+          <div className="pt-1.5 border-t border-slate-800 text-[11px]">
+            <span className="text-slate-400 block mb-0.5">Traversal:</span>
+            <div className="font-mono text-[11px] text-emerald-300 break-words bg-slate-950 p-2 rounded-lg border border-slate-800">
               {data.circuitOrTrail.map((id) => vertexLabelMap.get(id) || id).join(' → ')}
             </div>
           </div>

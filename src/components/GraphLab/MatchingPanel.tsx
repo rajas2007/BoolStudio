@@ -43,50 +43,45 @@ export function MatchingPanel() {
   }, [graph.vertices]);
 
   return (
-    <div className="flex flex-col gap-6 text-slate-200">
+    <div className="flex flex-col gap-3 text-slate-200">
       {/* Header & Definition */}
-      <div className="flex flex-col gap-2 pb-4 border-b border-slate-800">
+      <div className="flex flex-col gap-1.5 pb-2 border-b border-slate-800">
         <div className="flex items-center justify-between flex-wrap gap-2">
-          <span className="text-xs font-bold uppercase tracking-wider text-indigo-400">
-            Syllabus Unit 6 • Topic 7
+          <span className="text-[11px] font-bold uppercase tracking-wider text-indigo-400">
+            Syllabus Unit 6 • Topic 7: Bipartite Matching &amp; Hall&apos;s Condition
           </span>
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1">
             <button
               type="button"
               onClick={() => loadPreset('star')}
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-600/20 text-indigo-300 hover:bg-indigo-600/30 border border-indigo-500/30 text-xs font-medium transition-colors"
+              className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-indigo-600/20 text-indigo-300 hover:bg-indigo-600/30 border border-indigo-500/30 text-[11px] font-medium transition-colors"
             >
-              <RotateCcw className="w-3 h-3" />
-              <span>Try Star (Violates Hall)</span>
+              <RotateCcw className="w-2.5 h-2.5" />
+              <span>Star (Violates Hall)</span>
             </button>
             <button
               type="button"
               onClick={() => loadPreset('k_mn', 3, 3)}
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium transition-colors"
+              className="px-2 py-0.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-medium transition-colors"
             >
-              <span>K₃,₃ (Perfect)</span>
+              <span>K₃,₃</span>
             </button>
           </div>
         </div>
-        <h2 className="text-lg font-bold text-white">Bipartite Matching &amp; Hall&apos;s Theorem</h2>
-        <p className="text-xs text-slate-400 leading-relaxed">
-          A <strong>matching</strong> in a graph is a set of edges without common vertices.
-          <strong> Hall&apos;s Marriage Theorem</strong> states that a bipartite graph has a matching saturating Set A
-          if and only if for every subset <code className="text-indigo-300">S ⊆ A</code>,{' '}
-          <code className="text-emerald-300">|N(S)| ≥ |S|</code>.
+        <p className="text-[11px] text-slate-400 leading-snug">
+          A matching has no shared vertices. <strong>Hall&apos;s Theorem</strong>: A matching saturating Set A exists iff for every <code className="text-indigo-300">S ⊆ A</code>, <code className="text-emerald-300">|N(S)| ≥ |S|</code>.
         </p>
       </div>
 
       {/* Non-Bipartite Warning Banner if applicable */}
       {!data.isBipartite && (
-        <div className="p-4 rounded-xl bg-amber-950/25 border border-amber-500/40 text-xs flex flex-col gap-2">
-          <div className="flex items-center gap-2 font-bold text-amber-300 text-sm">
-            <AlertTriangle className="w-4 h-4 text-amber-400" />
-            <span>Precondition Warning: Graph is NOT Bipartite</span>
+        <div className="p-3 rounded-xl bg-amber-950/25 border border-amber-500/40 text-xs flex flex-col gap-1.5">
+          <div className="flex items-center gap-1.5 font-bold text-amber-300 text-xs">
+            <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+            <span>Precondition: Graph is NOT Bipartite</span>
           </div>
-          <p className="text-slate-300">
-            Matching algorithms and Hall&apos;s condition strictly require a 2-colourable bipartite graph.
-            Click below to load a valid bipartite graph.
+          <p className="text-slate-300 text-[11px]">
+            Matching algorithms require a 2-colourable graph. Click above to load a valid bipartite graph.
           </p>
           <button
             type="button"

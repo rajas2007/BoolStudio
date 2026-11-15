@@ -26,32 +26,29 @@ export function RepresentationsPanel() {
   }, [setActiveHighlight]);
 
   return (
-    <div className="flex flex-col gap-6 text-slate-200">
+    <div className="flex flex-col gap-3 text-slate-200">
       {/* Header & Quick Definition */}
-      <div className="flex flex-col gap-2 pb-4 border-b border-slate-800">
+      <div className="flex flex-col gap-1.5 pb-2 border-b border-slate-800">
         <div className="flex items-center justify-between flex-wrap gap-2">
-          <span className="text-xs font-bold uppercase tracking-wider text-indigo-400">
-            Syllabus Unit 6 • Topic 1
+          <span className="text-[11px] font-bold uppercase tracking-wider text-indigo-400">
+            Syllabus Unit 6 • Topic 1: Representations &amp; Properties
           </span>
           <button
             type="button"
             onClick={() => loadPreset('k_n', 4)}
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-600/20 text-indigo-300 hover:bg-indigo-600/30 border border-indigo-500/30 text-xs font-medium transition-colors"
+            className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-indigo-600/20 text-indigo-300 hover:bg-indigo-600/30 border border-indigo-500/30 text-[11px] font-medium transition-colors"
           >
-            <RotateCcw className="w-3 h-3" />
-            <span>Try Example (K₄)</span>
+            <RotateCcw className="w-2.5 h-2.5" />
+            <span>Example (K₄)</span>
           </button>
         </div>
-        <h2 className="text-lg font-bold text-white">Representations &amp; Properties</h2>
-        <p className="text-xs text-slate-400 leading-relaxed">
-          Graphs can be represented symbolically via an Adjacency List, algebraic incidence via Matrix{' '}
-          <code className="text-indigo-300">A</code>, or vertex-edge incidence via Matrix{' '}
-          <code className="text-emerald-300">M</code>.
+        <p className="text-[11px] text-slate-400 leading-snug">
+          Adjacency List, Adjacency Matrix <code className="text-indigo-300">A</code>, and Incidence Matrix <code className="text-emerald-300">M</code>.
         </p>
       </div>
 
       {/* Handshaking Lemma Card */}
-      <div className="p-4 rounded-xl bg-indigo-950/20 border border-indigo-500/30 flex flex-col gap-2.5">
+      <div className="p-3 rounded-xl bg-indigo-950/20 border border-indigo-500/30 flex flex-col gap-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-indigo-300 font-bold text-xs uppercase tracking-wide">
             <CheckCircle2 className="w-4 h-4 text-emerald-400" />

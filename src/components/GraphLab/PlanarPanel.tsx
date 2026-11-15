@@ -25,56 +25,53 @@ export function PlanarPanel() {
   const theoreticalFaces = Math.max(0, data.size - data.order + 2);
 
   return (
-    <div className="flex flex-col gap-6 text-slate-200">
+    <div className="flex flex-col gap-3 text-slate-200">
       {/* Header & Definition */}
-      <div className="flex flex-col gap-2 pb-4 border-b border-slate-800">
+      <div className="flex flex-col gap-1.5 pb-2 border-b border-slate-800">
         <div className="flex items-center justify-between flex-wrap gap-2">
-          <span className="text-xs font-bold uppercase tracking-wider text-indigo-400">
-            Syllabus Unit 6 • Topic 8
+          <span className="text-[11px] font-bold uppercase tracking-wider text-indigo-400">
+            Syllabus Unit 6 • Topic 8: Planar Graphs &amp; Edge Bounds
           </span>
-          <div className="flex items-center gap-1.5 flex-wrap">
+          <div className="flex items-center gap-1 flex-wrap">
             <button
               type="button"
               onClick={() => loadPreset('planar')}
-              className="px-2.5 py-1 rounded-lg bg-indigo-600/20 text-indigo-300 hover:bg-indigo-600/30 border border-indigo-500/30 text-xs font-medium transition-colors"
+              className="px-2 py-0.5 rounded-lg bg-indigo-600/20 text-indigo-300 hover:bg-indigo-600/30 border border-indigo-500/30 text-[11px] font-medium transition-colors"
             >
-              <RotateCcw className="w-3 h-3 inline mr-1" />
+              <RotateCcw className="w-2.5 h-2.5 inline mr-1" />
               <span>Planar (W₄)</span>
             </button>
             <button
               type="button"
               onClick={() => loadPreset('k_n', 5)}
-              className="px-2.5 py-1 rounded-lg bg-rose-950/40 text-rose-300 hover:bg-rose-900/40 border border-rose-800/40 text-xs font-medium transition-colors"
+              className="px-2 py-0.5 rounded-lg bg-rose-950/40 text-rose-300 hover:bg-rose-900/40 border border-rose-800/40 text-[11px] font-medium transition-colors"
             >
               <span>K₅</span>
             </button>
             <button
               type="button"
               onClick={() => loadPreset('non_planar')}
-              className="px-2.5 py-1 rounded-lg bg-rose-950/40 text-rose-300 hover:bg-rose-900/40 border border-rose-800/40 text-xs font-medium transition-colors"
+              className="px-2 py-0.5 rounded-lg bg-rose-950/40 text-rose-300 hover:bg-rose-900/40 border border-rose-800/40 text-[11px] font-medium transition-colors"
             >
               <span>K₃,₃</span>
             </button>
             <button
               type="button"
               onClick={() => loadPreset('petersen')}
-              className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium transition-colors"
+              className="px-2 py-0.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-medium transition-colors"
             >
               <span>Petersen</span>
             </button>
           </div>
         </div>
-        <h2 className="text-lg font-bold text-white">Planar Graphs &amp; Edge Bounds</h2>
-        <p className="text-xs text-slate-400 leading-relaxed">
-          A graph is <strong>Planar</strong> if it can be drawn in the plane without edges crossing.
-          Necessary edge bounds: <code className="text-indigo-300">E ≤ 3V - 6</code> (general), and{' '}
-          <code className="text-emerald-300">E ≤ 2V - 4</code> (bipartite / triangle-free).
+        <p className="text-[11px] text-slate-400 leading-snug">
+          Planar graphs satisfy necessary bounds: <code className="text-indigo-300">E ≤ 3V - 6</code> (general) and <code className="text-emerald-300">E ≤ 2V - 4</code> (bipartite/triangle-free).
         </p>
       </div>
 
       {/* Main Status Banner */}
       <div
-        className={`p-4 rounded-xl border flex items-center justify-between flex-wrap gap-3 ${
+        className={`p-3 rounded-xl border flex items-center justify-between flex-wrap gap-2 ${
           data.status === 'DEFINITELY_NON_PLANAR'
             ? 'bg-rose-950/20 border-rose-500/30'
             : data.status === 'TRIVIAL'

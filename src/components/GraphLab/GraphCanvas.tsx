@@ -140,9 +140,9 @@ export function GraphCanvas() {
   const startVertexObj = edgeStartVertexId ? vertexMap.get(edgeStartVertexId) : null;
 
   return (
-    <div className="relative w-full rounded-2xl glass-panel border border-slate-800/80 bg-slate-950/70 overflow-hidden shadow-2xl flex flex-col items-center">
+    <div className="relative w-full h-full rounded-2xl glass-panel border border-slate-800/80 bg-slate-950/70 overflow-hidden shadow-2xl flex flex-col items-center">
       {/* Top Status Bar */}
-      <div className="w-full px-4 py-2.5 bg-slate-900/60 border-b border-slate-800/60 flex items-center justify-between text-xs text-slate-400">
+      <div className="w-full px-3.5 py-1.5 bg-slate-900/60 border-b border-slate-800/60 flex items-center justify-between text-xs text-slate-400">
         <div className="flex items-center gap-2">
           <span className="font-semibold text-slate-200">Interactive Canvas</span>
           <span className="text-slate-600">|</span>
@@ -167,7 +167,7 @@ export function GraphCanvas() {
       <svg
         ref={svgRef}
         viewBox="0 0 700 460"
-        className="w-full h-auto min-h-[380px] max-h-[500px] cursor-crosshair select-none touch-none"
+        className="w-full flex-1 min-h-0 cursor-crosshair select-none touch-none"
         onPointerDown={onSvgClick}
         onPointerMove={handlePointerMoveCanvas}
         onPointerUp={handlePointerUpCanvas}
