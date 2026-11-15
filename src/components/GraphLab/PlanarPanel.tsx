@@ -6,7 +6,6 @@ import { evaluatePlanarBound } from '@/lib/graph-theory/planar-bound';
 import {
   CheckCircle2,
   XCircle,
-  HelpCircle,
   Layers,
   AlertTriangle,
   Info,

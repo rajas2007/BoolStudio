@@ -4,13 +4,10 @@ import React, { useMemo } from 'react';
 import { useGraphLab } from '@/hooks/useGraphLab';
 import { computeBipartiteMatching } from '@/lib/graph-theory/matching';
 import {
-  CheckCircle2,
   XCircle,
   HelpCircle,
   Link2,
   AlertTriangle,
-  Layers,
-  ArrowRight,
 } from 'lucide-react';
 
 export function MatchingPanel() {

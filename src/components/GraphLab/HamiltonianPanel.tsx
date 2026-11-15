@@ -8,9 +8,7 @@ import {
   XCircle,
   HelpCircle,
   ArrowRight,
-  GitCommit,
   AlertTriangle,
-  RotateCcw,
 } from 'lucide-react';
 
 export function HamiltonianPanel() {
