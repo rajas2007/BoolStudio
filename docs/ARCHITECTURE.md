@@ -45,6 +45,7 @@ graph TD
 * `src/lib/truth-table/`: Computes truth table matrices for $2^N$ variable assignments.
 * `src/lib/kmap/`: Builds Gray-code aligned Karnaugh Maps (for up to 4 variables) and solves minterm prime implicant covers.
 * `src/lib/simplifier/`: Transforms ASTs step-by-step while recording applied Boolean laws.
+* `src/features/venn-sets/`: Self-contained Venn & Sets Lab feature (Unit 1 basic set algebra and Unit 3 Principle of Inclusion-Exclusion). Contains SVG region geometry, set-to-Boolean parser adapter, dedicated Zustand store (`useVennLabStore`), identity verifier, and PIE calculator.
 * `src/hooks/useBooleanStudio.ts`: Zustand store managing interactive signal states and analysis results.
 
 ## 🔄 Data Flow

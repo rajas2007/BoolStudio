@@ -1,5 +1,39 @@
 # Session History
 
+## [2026-11-15] - Venn & Sets Lab Feature Implementation (`feature/venn-sets`)
+- **Summary**: Implemented the "Venn & Sets Lab" educational feature (`/venn-sets`) covering basic set theory (Unit 1) and Principle of Inclusion-Exclusion (Unit 3). Engineered using a clean, decoupled architecture: pure TypeScript domain adapters in `src/features/venn-sets/lib/`, dedicated Zustand store in `src/features/venn-sets/store/`, accessible interactive SVG diagrams with custom region paths, and a dedicated route page. Only touched a single existing source file (`Navbar.tsx` to register the navigation link).
+- **Files Created**:
+  - `src/features/venn-sets/types.ts`: Core type contracts (`SetVarCount`, `RegionMask`, `RegionShading`, `ParsedSetExpr`, `IdentityResult`, `InclusionExclusionInput/Result`, `WordProblem`).
+  - `src/features/venn-sets/lib/set-adapter.ts`: Adapter translating set notation ($\cup, \cap, ', \setminus, \triangle$) and ASCII keys to BoolStudio's Boolean AST grammar.
+  - `src/features/venn-sets/lib/regions.ts`: Region bitmask decomposition and canonical sum-of-regions formatting.
+  - `src/features/venn-sets/lib/shading.ts`: Shading bitmask manipulation helpers.
+  - `src/features/venn-sets/lib/identities.ts`: Set identity equivalence engine and curated presets library.
+  - `src/features/venn-sets/lib/inclusion-exclusion.ts`: Deterministic cardinality solver, consistency validator, and step-by-step formula generator.
+  - `src/features/venn-sets/lib/word-problems.ts`: 4 real-world syllabus word problems.
+  - `src/features/venn-sets/store/useVennLabStore.ts`: Dedicated Zustand store.
+  - `src/features/venn-sets/components/venn-geometry.ts`: Exact SVG arc paths and coordinate geometry for 2-set and 3-set diagrams.
+  - `src/features/venn-sets/components/RegionShape.tsx`: Accessible interactive SVG `<path>` region component.
+  - `src/features/venn-sets/components/VennDiagram.tsx`: SVG Venn diagram with Universal set $U$, circle outlines, and region shapes.
+  - `src/features/venn-sets/components/ExpressionShadingPanel.tsx`: Expression input with virtual keypad and live syntax diagnostics.
+  - `src/features/venn-sets/components/IdentityCheckerPanel.tsx`: Dual-expression evaluator with side-by-side diagrams and equivalence verdicts.
+  - `src/features/venn-sets/components/InclusionExclusionPanel.tsx`: Cardinality input form, validation alerts, and step-by-step derivation equations.
+  - `src/features/venn-sets/components/WordProblemPanel.tsx`: Exercise cards with hidden answer reveals.
+  - `src/features/venn-sets/components/TruthLinkPanel.tsx`: Read-only truth table with bidirectional hover linkage to Venn regions.
+  - `src/features/venn-sets/components/VennSetsLab.tsx`: Top-level multi-tab lab view.
+  - `src/features/venn-sets/index.ts`: Feature exports.
+  - `src/app/venn-sets/page.tsx`: Static page route.
+  - `docs/third-party/venn-sets.md`: Attribution documentation.
+- **Files Modified**:
+  - `src/components/layout/Navbar.tsx`: Added 1 navigation entry for `/venn-sets`.
+  - `docs/ARCHITECTURE.md`, `docs/DECISIONS.md` (ADR-004), `docs/CHANGELOG.md`, `ai/HANDOFF.md`, `ai/TASKS.md`.
+- **Validation**:
+  - `npx tsc --noEmit`: 0 errors.
+  - `npx eslint`: 0 errors, 0 warnings.
+  - `npm run build`: Static export succeeded (7 static routes generated).
+  - Scratch validation test: verified 7 basic expressions, 2 algebraic identities, 2 valid PIE cases, and 1 invalid PIE rejection.
+
+---
+
 ## [2026-11-05] - Desktop Application Conversion (Tauri 2.0 & Next.js Static Export)
 - **Summary**: Successfully converted the BoolStudio website into an ultra-fast, lightweight Windows desktop application using Tauri 2.0 (Rust) and Microsoft Edge WebView2, preserving 100% of existing functionality, styling, and navigation.
 - **Files Changed / Created**:

@@ -5,6 +5,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [Unreleased]
+
+### Added
+- **Venn & Sets Lab** (`/venn-sets`): Interactive educational laboratory for set theory and the Principle of Inclusion-Exclusion (Units 1 & 3).
+  - 2-Set and 3-Set SVG Venn diagram visualization with clickable, keyboard-focusable disjoint region paths and Universal set boundary $U$.
+  - Manual region shading mode computing canonical sum-of-minterms / sum-of-regions set expressions in real-time.
+  - Set expression shading with input parser accepting set symbols ($\cup, \cap, ', \setminus, \triangle$) and ASCII equivalents ($|, \&, !, \backslash, \text{\textasciicircum}$), adapting expressions to Boolean ASTs.
+  - Identity checker evaluating two set expressions across all minterm masks, with automated equivalence reason, counterexamples, and presets (De Morgan, Distributive, Absorption, Difference, Symmetric Difference).
+  - Principle of Inclusion-Exclusion (PIE) calculator with step-by-step formula substitutions, exact disjoint region decomposition, and consistency violation checks.
+  - Interactive classroom word problems with hidden answers and derivations.
+  - Bidirectional "Venn ↔ Truth table" minterm linkage highlighting corresponding regions on hover.
+- Navigation entry for "Venn & Sets" in `src/components/layout/Navbar.tsx`.
+- Third-party attribution documentation in `docs/third-party/venn-sets.md`.
+
+---
+
 ## [1.1.0] - 2026-11-05
 
 ### Added

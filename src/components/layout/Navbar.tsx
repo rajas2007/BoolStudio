@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Cpu, Play, Info, Home } from 'lucide-react';
+import { Cpu, Play, Info, Home, Layers } from 'lucide-react';
 
 export function Navbar() {
   const pathname = usePathname();
@@ -11,6 +11,7 @@ export function Navbar() {
   const links = [
     { href: '/', label: 'Home', icon: Home },
     { href: '/workspace', label: 'Workspace', icon: Cpu },
+    { href: '/venn-sets', label: 'Venn & Sets', icon: Layers },
     { href: '/about', label: 'About', icon: Info },
   ];
 

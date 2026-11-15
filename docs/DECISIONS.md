@@ -34,3 +34,16 @@ Use this document to log significant engineering and architectural decisions. Do
   3. No local HTTP server ports are opened in production, improving security and eliminating firewall prompts.
 * **Alternatives Considered**: Electron (too heavy, high RAM/installer bloat), PWA (lacks native window controls, desktop shortcuts, and NSIS installer packaging).
 * **Consequences**: Building the desktop application requires the Rust toolchain and MSVC build tools. Both web (`npm run dev`) and desktop (`npm run tauri:dev` / `npm run tauri:build`) workflows remain cleanly supported.
+
+---
+
+## [ADR-004] Venn & Sets Lab Architecture
+* **Date**: 2026-11-15
+* **Status**: Approved
+* **Decision**: Implement the "Venn & Sets Lab" feature in a self-contained feature directory (`src/features/venn-sets/`) using a dedicated Zustand store (`useVennLabStore`), an SVG-based region renderer, and a thin adapter that maps set-theoretic expressions to BoolStudio's existing Boolean AST parser and evaluator.
+* **Reason**:
+  1. Adheres to the principle that a region in an $n$-set Venn diagram corresponds directly to a Boolean minterm/truth-table row.
+  2. Preserves existing codebase integrity by reusing BoolStudio's tokenizer, parser, and evaluator without any modifications to core parser code.
+  3. Complies with Tauri strict CSP and Next.js static export (`output: 'export'`) by generating SVG paths natively without third-party chart dependencies (e.g. Chart.js, D3).
+* **Alternatives Considered**: Using Chart.js / `chartjs-chart-venn` (rejected due to external dependency constraint and strict CSP rules), writing a separate set parser from scratch (rejected to prevent duplicate parsing logic).
+* **Consequences**: Adding set operators is handled in the adapter. The feature is 100% client-side, offline-capable, and decoupled from the main Boolean Studio store.

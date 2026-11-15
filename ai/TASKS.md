@@ -1,6 +1,14 @@
 # Task Board
 
 ## 📋 Completed
+- [x] Implement Venn & Sets Lab feature (`feature/venn-sets`):
+  - Types committed first in `src/features/venn-sets/types.ts`.
+  - Pure domain modules in `src/features/venn-sets/lib/` (`set-adapter.ts`, `regions.ts`, `shading.ts`, `identities.ts`, `inclusion-exclusion.ts`, `word-problems.ts`).
+  - Isolated Zustand store in `src/features/venn-sets/store/useVennLabStore.ts`.
+  - Accessible SVG Venn diagrams (2-set and 3-set) with custom paths, keyboard navigation, and region tooltips.
+  - Interactive tabs: Expression Shading, Manual Shading, Identity Checker, Inclusion-Exclusion Calculator, and Word Problems.
+  - Linked read-only Truth Table with bidirectional minterm highlighting.
+  - Route `/venn-sets` with navigation link in `src/components/layout/Navbar.tsx`.
 - [x] Create project documentation structure (`docs/` and `ai/` directories)
 - [x] Configure rules and startup/shutdown checklists in [AGENTS.md](file:///C:/Users/shravan/Documents/GitHub/BoolStudio/AGENTS.md)
 - [x] Initialize Next.js 15 (App Router) project with Tailwind CSS, Zustand, and TypeScript
