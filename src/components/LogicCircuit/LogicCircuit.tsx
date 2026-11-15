@@ -2,8 +2,7 @@
 
 import React from 'react';
 import { useBooleanStudio } from '@/hooks/useBooleanStudio';
-import { CircuitNode, CircuitWire } from '@/lib/types/boolean';
-import { Activity, Power, Info, Zap } from 'lucide-react';
+import { Activity, Power, Zap } from 'lucide-react';
 
 export function LogicCircuit() {
   const { analysisResult, activeInputValues, toggleInputValue } = useBooleanStudio();
@@ -16,7 +15,7 @@ export function LogicCircuit() {
     );
   }
 
-  const { nodes, wires, output } = analysisResult.circuit;
+  const { nodes, wires } = analysisResult.circuit;
 
   // Calculate SVG bounds dynamically
   const maxX = Math.max(...nodes.map((n) => n.x), 500) + 120;

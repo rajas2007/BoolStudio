@@ -119,7 +119,7 @@ export function generateKMap(truthTable: TruthTableData): KMapData {
   }
 
   // Calculate groups & minimal expression
-  const { groups, simplifiedExpression } = solveKMapGroups(grid, numVars, vars, rowVars, colVars);
+  const { groups, simplifiedExpression } = solveKMapGroups(grid, numVars, vars);
 
   // Assign group indices to grid cells for visual highlighting
   groups.forEach((group, groupIdx) => {
@@ -147,9 +147,7 @@ export function generateKMap(truthTable: TruthTableData): KMapData {
 function solveKMapGroups(
   grid: KMapCell[][],
   numVars: number,
-  allVars: string[],
-  rowVars: string[],
-  colVars: string[]
+  allVars: string[]
 ): { groups: KMapGroup[]; simplifiedExpression: string } {
   const minterms: number[] = [];
   grid.forEach((row) => {

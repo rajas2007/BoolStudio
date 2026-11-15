@@ -74,6 +74,7 @@ export interface CircuitNode {
   y: number;
   inputs: string[]; // Node IDs driving this node
   value: boolean;
+  depth?: number;
 }
 
 export interface CircuitWire {

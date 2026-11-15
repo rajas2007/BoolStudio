@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useBooleanStudio } from '@/hooks/useBooleanStudio';
-import { GitCommit, Sparkles, BookOpen, ArrowRight, CheckCircle } from 'lucide-react';
+import { Sparkles, BookOpen, ArrowRight, CheckCircle } from 'lucide-react';
 
 export function Simplification() {
   const { analysisResult } = useBooleanStudio();

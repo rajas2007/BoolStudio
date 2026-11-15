@@ -257,11 +257,8 @@ function areNodesEqual(a: ASTNode, b: ASTNode): boolean {
   if (a.type !== b.type) return false;
   if (a.type === 'VARIABLE' && b.type === 'VARIABLE') return a.name === b.name;
   if (a.type === 'NOT' && b.type === 'NOT') return areNodesEqual(a.child, b.child);
-  if (
-    (a.type === 'AND' || a.type === 'OR' || a.type === 'XOR' || a.type === 'NAND' || a.type === 'NOR' || a.type === 'XNOR' || a.type === 'IMPLIES' || a.type === 'IFF') &&
-    (b.type === 'AND' || b.type === 'OR' || b.type === 'XOR' || b.type === 'NAND' || b.type === 'NOR' || b.type === 'XNOR' || b.type === 'IMPLIES' || b.type === 'IFF')
-  ) {
-    return areNodesEqual((a as any).left, (b as any).left) && areNodesEqual((a as any).right, (b as any).right);
+  if (a.type !== 'VARIABLE' && a.type !== 'NOT' && b.type !== 'VARIABLE' && b.type !== 'NOT') {
+    return areNodesEqual(a.left, b.left) && areNodesEqual(a.right, b.right);
   }
   return false;
 }

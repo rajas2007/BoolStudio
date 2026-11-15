@@ -210,10 +210,10 @@ export function buildCircuit(
       const maxInputDepth = n.inputs.reduce((acc, inputId) => {
         const parentNode = nodes.find((p) => p.id === inputId);
         if (!parentNode || parentNode.type === 'INPUT') return acc;
-        return Math.max(acc, (parentNode as any).depth || 1);
+        return Math.max(acc, parentNode.depth || 1);
       }, 0);
       depth = maxInputDepth + 1;
-      (n as any).depth = depth;
+      n.depth = depth;
     }
 
     if (!depthGroups.has(depth)) depthGroups.set(depth, []);

@@ -39,19 +39,19 @@ const GROUPING_OPS = [
 export function ExpressionInput() {
   const searchParams = useSearchParams();
   const { expression, setExpression, generateAnalysis, analysisResult, isEvaluating } = useBooleanStudio();
-  const [localExpr, setLocalExpr] = useState(expression);
+  const paramExpr = searchParams.get('expr');
+  const [localExpr, setLocalExpr] = useState(paramExpr && paramExpr.trim() !== '' ? paramExpr : expression);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    // Check if query parameter `expr` exists in URL on mount
-    const paramExpr = searchParams.get('expr');
-    if (paramExpr && paramExpr.trim() !== '') {
-      setLocalExpr(paramExpr);
-      setExpression(paramExpr);
-      generateAnalysis(paramExpr);
+    const urlExpr = searchParams.get('expr');
+    if (urlExpr && urlExpr.trim() !== '') {
+      setExpression(urlExpr);
+      generateAnalysis(urlExpr);
     } else {
       generateAnalysis(expression);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const updateURL = (exprToShare: string) => {

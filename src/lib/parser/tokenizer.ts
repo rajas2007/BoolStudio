@@ -55,7 +55,7 @@ export function tokenize(expression: string): { tokens: Token[]; variables: stri
     } else if (/[a-zA-Z]/.test(char)) {
       // Collect identifier/variable name
       let varName = '';
-      let startPos = i;
+      const startPos = i;
       while (i < sanitized.length && /[a-zA-Z0-9_]/.test(sanitized[i])) {
         varName += sanitized[i];
         i++;
