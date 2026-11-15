@@ -1,210 +1,405 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
 import { useGraphLab } from '@/hooks/useGraphLab';
 import {
-  computeChromaticNumber,
-  validateColoring,
+  analyzeColoring,
   COLOR_PALETTE,
 } from '@/lib/graph-theory/coloring';
 import {
   Palette,
-  Sparkles,
-  RotateCcw,
   CheckCircle2,
+  RotateCcw,
+  Sparkles,
+  Play,
+  Pause,
+  SkipForward,
+  SkipBack,
+  ChevronLeft,
+  ChevronRight,
   AlertTriangle,
-  HelpCircle,
 } from 'lucide-react';
 
 export function ColoringPanel() {
   const {
     graph,
+    colouringStrategy,
+    setColouringStrategy,
+    colouringStepIndex,
+    setColouringStepIndex,
+    isColouringPlaying,
+    toggleColouringPlayback,
+    nextColouringStep,
+    prevColouringStep,
     manualColors,
-    activeColorPickerIndex,
-    applyGreedyColoring,
-    resetColoring,
-    setActiveColorPickerIndex,
+    setManualColor,
+    resetManualColors,
+    setActiveHighlight,
+    loadPreset,
   } = useGraphLab();
 
-  const chromaticResult = useMemo(
-    () => computeChromaticNumber(graph),
-    [graph]
+  const [useManualMode, setUseManualMode] = useState(false);
+
+  const output = useMemo(
+    () =>
+      analyzeColoring(
+        graph,
+        colouringStrategy,
+        useManualMode ? manualColors : undefined
+      ),
+    [graph, colouringStrategy, useManualMode, manualColors]
   );
+  const data = output.result;
+  const steps = useMemo(() => output.steps || [], [output.steps]);
+  const maxStep = Math.max(0, steps.length - 1);
 
-  const validation = useMemo(
-    () => validateColoring(graph, manualColors),
-    [graph, manualColors]
-  );
+  // Sync canvas highlight
+  useEffect(() => {
+    if (useManualMode) {
+      const vertexColors: Record<string, string> = {};
+      Object.entries(manualColors).forEach(([vId, cIdx]) => {
+        vertexColors[vId] = COLOR_PALETTE[cIdx % COLOR_PALETTE.length];
+      });
+      const edgeColors: Record<string, string> = {};
+      data.conflictingEdges.forEach((eId) => {
+        edgeColors[eId] = '#f43f5e';
+      });
+      setActiveHighlight({
+        vertices: graph.vertices.map((v) => v.id),
+        edges: data.conflictingEdges,
+        vertexColors,
+        edgeColors,
+      });
+    } else if (steps.length > 0 && steps[colouringStepIndex]) {
+      setActiveHighlight(steps[colouringStepIndex].highlight);
+    } else {
+      setActiveHighlight(output.highlight);
+    }
+  }, [
+    useManualMode,
+    manualColors,
+    data.conflictingEdges,
+    colouringStepIndex,
+    steps,
+    output.highlight,
+    graph.vertices,
+    setActiveHighlight,
+  ]);
 
-  const colorsUsedCount = useMemo(() => {
-    return new Set(Object.values(manualColors)).size;
-  }, [manualColors]);
-
-  const allVerticesColored = useMemo(() => {
-    if (graph.vertices.length === 0) return true;
-    return graph.vertices.every((v) => manualColors[v.id] !== undefined);
-  }, [graph.vertices, manualColors]);
+  // Playback timer
+  useEffect(() => {
+    if (!isColouringPlaying || maxStep === 0 || useManualMode) return;
+    const interval = setInterval(() => {
+      const current = useGraphLab.getState().colouringStepIndex;
+      if (current >= maxStep) {
+        useGraphLab.getState().toggleColouringPlayback();
+      } else {
+        useGraphLab.getState().nextColouringStep(maxStep);
+      }
+    }, 700);
+    return () => clearInterval(interval);
+  }, [isColouringPlaying, maxStep, useManualMode]);
 
   return (
-    <div className="flex flex-col gap-6">
-      {/* Top Banner: Chromatic Number & Status */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {/* Exact Chromatic Number Card */}
+    <div className="flex flex-col gap-6 text-slate-200">
+      {/* Header & Definition */}
+      <div className="flex flex-col gap-2 pb-4 border-b border-slate-800">
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <span className="text-xs font-bold uppercase tracking-wider text-indigo-400">
+            Syllabus Unit 6 • Topic 9
+          </span>
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <button
+              type="button"
+              onClick={() => {
+                setUseManualMode(false);
+                loadPreset('petersen');
+              }}
+              className="px-2.5 py-1 rounded-lg bg-indigo-600/20 text-indigo-300 hover:bg-indigo-600/30 border border-indigo-500/30 text-xs font-medium transition-colors"
+            >
+              <RotateCcw className="w-3 h-3 inline mr-1" />
+              <span>Petersen (χ=3)</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setUseManualMode(false);
+                loadPreset('cycle');
+              }}
+              className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium transition-colors"
+            >
+              <span>Cycle C₅ (χ=3)</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setUseManualMode(false);
+                loadPreset('k_n', 4);
+              }}
+              className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium transition-colors"
+            >
+              <span>K₄ (χ=4)</span>
+            </button>
+          </div>
+        </div>
+        <h2 className="text-lg font-bold text-white">Graph Colouring &amp; Chromatic Number</h2>
+        <p className="text-xs text-slate-400 leading-relaxed">
+          A <strong>Proper Vertex Colouring</strong> assigns colours to vertices such that no adjacent vertices share
+          the same colour. The <strong>Chromatic Number χ(G)</strong> is the minimal number of colours required.
+        </p>
+      </div>
+
+      {/* Chromatic Number & Bounds Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        {/* Exact or Bound Chromatic Number */}
         <div className="p-4 rounded-xl bg-indigo-950/20 border border-indigo-500/30 flex flex-col gap-1">
-          <div className="flex items-center justify-between">
-            <span className="text-xs uppercase tracking-wider text-indigo-300 font-bold">
-              Chromatic Number χ(G)
+          <span className="text-xs uppercase tracking-wider text-indigo-300 font-semibold">
+            Chromatic Number χ(G)
+          </span>
+          <div className="flex items-baseline gap-2">
+            <span className="text-2xl font-bold font-mono text-white">
+              {data.chromaticNumber}
             </span>
             <span
-              className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${
-                chromaticResult.isExact
-                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                  : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+              className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${
+                data.isExact
+                  ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
+                  : 'bg-amber-500/20 text-amber-300 border-amber-500/30'
               }`}
             >
-              {chromaticResult.isExact ? 'Exact (Backtracking)' : 'Greedy Bound'}
+              {data.isExact ? 'Exact' : 'Upper Bound'}
             </span>
           </div>
-          <span className="text-3xl font-extrabold text-white font-mono mt-1">
-            {chromaticResult.chromaticNumber}
-          </span>
           <span className="text-[11px] text-slate-400">
-            {chromaticResult.isExact
-              ? `Minimum colors required for n=${graph.vertices.length} vertices.`
-              : 'Upper bound computed via Welsh-Powell heuristic.'}
+            {data.isExact ? 'Proven minimal colours' : 'Greedy heuristic bound'}
           </span>
         </div>
 
-        {/* Current Active Coloring Card */}
-        <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800 flex flex-col gap-1">
-          <span className="text-xs uppercase tracking-wider text-slate-400 font-bold">
-            Colors Used Now
+        {/* Clique Lower Bound */}
+        <div className="p-4 rounded-xl bg-slate-900/40 border border-slate-800 flex flex-col gap-1">
+          <span className="text-xs uppercase tracking-wider text-slate-400 font-semibold">
+            Clique Lower Bound
           </span>
-          <span className="text-3xl font-extrabold text-white font-mono mt-1">
-            {colorsUsedCount}
+          <span className="text-2xl font-bold font-mono text-amber-400">
+            ω(G) = {data.cliqueLowerBound}
           </span>
           <span className="text-[11px] text-slate-400">
-            {allVerticesColored
-              ? 'All vertices have been assigned a color.'
-              : `${graph.vertices.length - Object.keys(manualColors).length} uncolored vertex(es).`}
+            χ(G) ≥ ω(G) (Max clique size)
           </span>
         </div>
 
-        {/* Validity Check Card */}
-        <div
-          className={`p-4 rounded-xl border flex flex-col gap-1 ${
-            validation.isValid && allVerticesColored
-              ? 'bg-emerald-950/20 border-emerald-500/30'
-              : !validation.isValid
-              ? 'bg-rose-950/20 border-rose-500/30'
-              : 'bg-slate-900/60 border-slate-800'
-          }`}
-        >
-          <span className="text-xs uppercase tracking-wider text-slate-400 font-bold">
-            Coloring Validity
+        {/* Degree Upper Bound */}
+        <div className="p-4 rounded-xl bg-slate-900/40 border border-slate-800 flex flex-col gap-1">
+          <span className="text-xs uppercase tracking-wider text-slate-400 font-semibold">
+            Degree Upper Bound
           </span>
-          <div className="flex items-center gap-2 mt-1">
-            {validation.isValid ? (
-              <>
-                <CheckCircle2 className="w-6 h-6 text-emerald-400" />
-                <span className="text-lg font-bold text-emerald-300">
-                  {allVerticesColored ? 'Valid Coloring' : 'No Conflicts'}
-                </span>
-              </>
-            ) : (
-              <>
-                <AlertTriangle className="w-6 h-6 text-rose-400" />
-                <span className="text-lg font-bold text-rose-300">
-                  {validation.conflictingEdges.length} Conflict(s)
-                </span>
-              </>
-            )}
-          </div>
+          <span className="text-2xl font-bold font-mono text-emerald-400">
+            Δ(G) + 1 = {data.degreeUpperBound}
+          </span>
           <span className="text-[11px] text-slate-400">
-            {validation.isValid
-              ? 'No two adjacent vertices share the same color.'
-              : 'Adjacent vertices share an identical color!'}
+            χ(G) ≤ Δ(G) + 1 (Brooks&apos; Theorem)
           </span>
         </div>
       </div>
 
-      {/* Interactive Controls & Palette */}
-      <div className="p-5 rounded-2xl glass-panel border border-slate-800 flex flex-col gap-4">
-        <div className="flex items-center justify-between flex-wrap gap-3">
-          <div className="flex items-center gap-2">
-            <Palette className="w-4 h-4 text-indigo-400" />
-            <h4 className="text-sm font-bold text-white uppercase tracking-wider">
-              Coloring Controls & Palette
-            </h4>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              onClick={applyGreedyColoring}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-600/30 transition-all"
-            >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Greedy &quot;Colour It&quot;</span>
-            </button>
-            <button
-              onClick={resetColoring}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium bg-slate-900 border border-slate-800 text-slate-300 hover:text-white transition-all"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-              <span>Clear Colors</span>
-            </button>
-          </div>
+      {/* Mode Toggle: Greedy vs Manual */}
+      <div className="flex items-center justify-between p-3 rounded-xl bg-slate-900/50 border border-slate-800">
+        <span className="text-xs font-semibold text-white">Colouring Mode:</span>
+        <div className="flex items-center gap-1.5 p-1 rounded-lg bg-slate-950 border border-slate-800 text-xs">
+          <button
+            type="button"
+            onClick={() => setUseManualMode(false)}
+            className={`px-3 py-1 rounded-md font-semibold transition-colors ${
+              !useManualMode
+                ? 'bg-indigo-600 text-white'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            Greedy Algorithm
+          </button>
+          <button
+            type="button"
+            onClick={() => setUseManualMode(true)}
+            className={`px-3 py-1 rounded-md font-semibold transition-colors ${
+              useManualMode
+                ? 'bg-indigo-600 text-white'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            Manual Colouring
+          </button>
         </div>
+      </div>
 
-        <p className="text-xs text-slate-400">
-          Pick an active color below, then click any vertex on the canvas to paint it.
-        </p>
-
-        {/* Color Palette Chips */}
-        <div className="flex items-center gap-2.5 flex-wrap p-3 rounded-xl bg-slate-900/60 border border-slate-800">
-          {COLOR_PALETTE.map((color, idx) => {
-            const isSelected = activeColorPickerIndex === idx;
-            return (
+      {/* GREEDY MODE CONTROLS & STEP PLAYER */}
+      {!useManualMode ? (
+        <div className="flex flex-col gap-4">
+          {/* Strategy Selector */}
+          <div className="flex items-center justify-between flex-wrap gap-2 text-xs">
+            <span className="text-slate-400">Vertex Ordering Strategy:</span>
+            <div className="flex items-center gap-1.5">
               <button
-                key={idx}
-                onClick={() => setActiveColorPickerIndex(idx)}
-                style={{ backgroundColor: color }}
-                className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs text-slate-950 transition-all shadow-md ${
-                  isSelected
-                    ? 'ring-4 ring-white ring-offset-2 ring-offset-slate-950 scale-110'
-                    : 'opacity-80 hover:opacity-100 hover:scale-105'
+                type="button"
+                onClick={() => setColouringStrategy('degree')}
+                className={`px-2.5 py-1 rounded-lg font-semibold border transition-colors ${
+                  colouringStrategy === 'degree'
+                    ? 'bg-indigo-600/30 text-indigo-300 border-indigo-500/50'
+                    : 'bg-slate-900 text-slate-400 border-slate-800 hover:text-white'
                 }`}
-                title={`Select Color #${idx + 1}`}
               >
-                {idx + 1}
+                Welsh-Powell (Degree-Descending)
               </button>
-            );
-          })}
-        </div>
-      </div>
+              <button
+                type="button"
+                onClick={() => setColouringStrategy('alphabetical')}
+                className={`px-2.5 py-1 rounded-lg font-semibold border transition-colors ${
+                  colouringStrategy === 'alphabetical'
+                    ? 'bg-indigo-600/30 text-indigo-300 border-indigo-500/50'
+                    : 'bg-slate-900 text-slate-400 border-slate-800 hover:text-white'
+                }`}
+              >
+                Alphabetical Order
+              </button>
+            </div>
+          </div>
 
-      {/* Educational Theorem Reference Box */}
-      <div className="p-4 rounded-xl bg-slate-900/40 border border-slate-800 text-xs text-slate-400 flex flex-col gap-2">
-        <div className="flex items-center gap-1.5 font-bold text-slate-200">
-          <HelpCircle className="w-4 h-4 text-indigo-400" />
-          <span>Chromatic Theory (Unit 6):</span>
+          {/* Greedy Step Player */}
+          {steps.length > 0 && (
+            <div className="p-4 rounded-xl bg-slate-900/50 border border-slate-800 flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-indigo-400" />
+                  <h3 className="text-sm font-bold text-white">Greedy Step Player</h3>
+                </div>
+                <span className="text-xs font-mono text-slate-400">
+                  Step <strong className="text-white">{colouringStepIndex}</strong> of {maxStep}
+                </span>
+              </div>
+
+              <div className="p-2.5 rounded-lg bg-slate-950 border border-slate-800 text-xs text-indigo-300 font-mono">
+                {steps[colouringStepIndex]?.description || 'Step complete'}
+              </div>
+
+              <input
+                type="range"
+                min={0}
+                max={maxStep}
+                value={colouringStepIndex}
+                onChange={(e) => setColouringStepIndex(Number(e.target.value))}
+                className="w-full accent-indigo-500 cursor-pointer"
+              />
+
+              <div className="flex items-center justify-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setColouringStepIndex(0)}
+                  disabled={colouringStepIndex === 0}
+                  className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-30 text-white transition-colors"
+                >
+                  <SkipBack className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={prevColouringStep}
+                  disabled={colouringStepIndex === 0}
+                  className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-30 text-white transition-colors"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={toggleColouringPlayback}
+                  className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs flex items-center gap-1.5 transition-colors shadow-md shadow-indigo-600/20"
+                >
+                  {isColouringPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                  <span>{isColouringPlaying ? 'Pause' : 'Play'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => nextColouringStep(maxStep)}
+                  disabled={colouringStepIndex >= maxStep}
+                  className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-30 text-white transition-colors"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setColouringStepIndex(maxStep)}
+                  disabled={colouringStepIndex >= maxStep}
+                  className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-30 text-white transition-colors"
+                >
+                  <SkipForward className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
-        <ul className="list-disc list-inside text-[11px] leading-relaxed space-y-1">
-          <li>
-            <strong>Vertex Coloring:</strong> An assignment of labels/colors to vertices
-            such that adjacent vertices receive distinct colors.
-          </li>
-          <li>
-            <strong>Chromatic Number χ(G):</strong> The minimum number of colors needed to
-            properly color G. For complete graph K_n, χ(K_n) = n. For bipartite graphs with edges,
-            χ(G) = 2. For odd cycles C_(2k+1), χ(C_(2k+1)) = 3.
-          </li>
-          <li>
-            <strong>Four Color Theorem (Appel & Haken 1976):</strong> Every planar graph is
-            4-colourable (χ(G) ≤ 4).
-          </li>
-        </ul>
-      </div>
+      ) : (
+        /* MANUAL COLOURING MODE */
+        <div className="flex flex-col gap-3 p-4 rounded-xl bg-slate-900/50 border border-slate-800">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Palette className="w-4 h-4 text-emerald-400" />
+              <h3 className="text-sm font-bold text-white">Manual Vertex Colouring</h3>
+            </div>
+            <button
+              type="button"
+              onClick={resetManualColors}
+              className="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-xs text-slate-300"
+            >
+              Reset Manual
+            </button>
+          </div>
+
+          <p className="text-xs text-slate-400">
+            Click color circles to assign a color to each vertex. Adjacent vertices sharing the same
+            color trigger a conflict alert!
+          </p>
+
+          {/* Conflict Banner */}
+          {data.hasConflicts ? (
+            <div className="p-3 rounded-lg bg-rose-950/30 border border-rose-500/40 text-xs text-rose-300 flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
+              <span>
+                <strong>Conflict Detected!</strong> {data.conflictingEdges.length} edge(s) connect
+                vertices of the same colour (highlighted in red).
+              </span>
+            </div>
+          ) : Object.keys(manualColors).length === graph.vertices.length && graph.vertices.length > 0 ? (
+            <div className="p-3 rounded-lg bg-emerald-950/20 border border-emerald-500/30 text-xs text-emerald-300 flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+              <span>Proper Vertex Colouring! No adjacent vertices share a colour.</span>
+            </div>
+          ) : null}
+
+          {/* Vertex Color Selectors */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2">
+            {graph.vertices.map((v) => (
+              <div
+                key={v.id}
+                className="flex items-center justify-between p-2 rounded-lg bg-slate-950 border border-slate-800 text-xs"
+              >
+                <span className="font-bold text-white font-mono">{v.label}</span>
+                <div className="flex items-center gap-1">
+                  {COLOR_PALETTE.slice(0, 5).map((color, cIdx) => (
+                    <button
+                      key={cIdx}
+                      type="button"
+                      onClick={() => setManualColor(v.id, cIdx)}
+                      className={`w-5 h-5 rounded-full border transition-transform ${
+                        manualColors[v.id] === cIdx
+                          ? 'scale-125 border-white shadow'
+                          : 'border-transparent opacity-70 hover:opacity-100'
+                      }`}
+                      style={{ backgroundColor: color }}
+                    />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

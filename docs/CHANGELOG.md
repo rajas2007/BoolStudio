@@ -5,6 +5,32 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [1.2.0] - 2026-11-15
+
+### Added
+- **Unit 6: Graph Theory Laboratory (`/graph-theory`)**: Complete discrete mathematics laboratory module with single shared Zustand state (`src/hooks/useGraphLab.ts`).
+- **Pure Algorithmic Layer (`src/lib/graph-theory/`)**: Zero-UI, zero-DOM TypeScript functions adhering to the `AlgorithmOutput<T>` contract (`{ result, explanation, highlight, steps }`):
+  - Adjacency and Incidence Matrix builders, Handshaking lemma verifier, matrix power $(A)^k$ walk counter.
+  - Degree calculations, connected components, Tarjan/Kosaraju strongly connected components, BFS shortest path, and cycle detection.
+  - Interactive Walk vs Trail vs Path vs Circuit vs Cycle validator.
+  - Hierholzer's Eulerian circuit/trail solver with step playback frames.
+  - Hamiltonian path and cycle solver with backtracking ($n \le 12$) and Dirac/Ore sufficient theorem checks.
+  - Tree triad validator ({Connected, Acyclic, $|E| = |V| - 1$}), leaf detector, degree sequence, and BFS spanning tree generator.
+  - BFS 2-colouring bipartite detector and Kőnig odd cycle witness extractor.
+  - Bipartite maximum matching solver with augmenting path steps and constructive Hall's Marriage Theorem failure witness subset $S$.
+  - Planar graph edge bound analyzer ($E \le 3V - 6$, $E \le 2V - 4$), Euler polyhedral formula ($V - E + F = 2$), and non-planarity proofs for $K_5$ and $K_{3,3}$.
+  - Vertex coloring engine with Welsh-Powell greedy coloring, exact chromatic number $\chi(G)$ via backtracking ($n \le 10$), clique/degree bounds, and manual coloring conflict detector.
+- **Interactive SVG Canvas**: Hardware-accelerated native SVG canvas with HTML5 pointer capture, smooth vertex dragging without jumps, dynamic ghost edge cursor guide, arrowheads for directed mode, and active highlight synchronization.
+- **Top Toolbar**: Ergonomic toolbar with Select/Move, Add Vertex, Add Edge, Delete, Directed/Undirected conversion toggle, Presets dropdown, Undo history, Clear, and $V = X \mid E = Y$ count badge.
+- **Comprehensive Test Suite (`src/lib/graph-theory/graph-algorithms.test.ts`)**: 11 automated unit tests covering all 9 topics on canonical graphs ($K_4, K_5, K_{3,3}, C_5, C_6$, Petersen, $P_5, K_{1,4}$, Disconnected, self-loops, multi-edges, walks).
+- **Navigation & Architectural Documentation**: Added Graph Lab entry to Navbar and comprehensive architecture guide in `README.md`.
+
+### Fixed
+- Replaced previous cluttered and broken graph-theory prototype with clean 2-column desktop split layout (Left ~60% Canvas + Toolbar, Right ~40% Active Topic Panel) and 9 ordered syllabus tabs.
+- Replaced stacked non-discrete Venn regions with exact SVG mask cutouts in Venn & Sets Lab.
+
+---
+
 ## [1.1.0] - 2026-11-05
 
 ### Added

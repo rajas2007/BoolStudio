@@ -4,8 +4,7 @@ import {
   EditorMode,
   TopicTab,
   PresetName,
-  Vertex,
-  Edge,
+  HighlightState,
 } from '@/lib/types/graph';
 import {
   generatePreset,
@@ -16,41 +15,54 @@ import {
   toggleDirected,
   canAddEdge,
   validateStep,
-  computeGreedyColoring,
 } from '@/lib/graph-theory';
 
 interface GraphLabState {
   graph: Graph;
+  history: Graph[]; // Undo stack
   mode: EditorMode;
   activeTopic: TopicTab;
   selectedVertexId: string | null;
   selectedEdgeId: string | null;
   edgeStartVertexId: string | null;
   hoveredElement: { type: 'vertex' | 'edge'; id: string } | null;
+  statusMessage: { text: string; type: 'info' | 'error' | 'success' } | null;
+  activeHighlight: HighlightState | null;
+  cursorPos: { x: number; y: number } | null;
 
-  // Walk in progress
-  walkVertexSequence: string[];
-  walkError: string | null;
-
-  // Coloring mode state
-  manualColors: Record<string, number>;
-  activeColorPickerIndex: number;
-
-  // Euler walk animation / step state
+  // Step-through indices and playback
   eulerStepIndex: number;
   isEulerPlaying: boolean;
+  hamiltonianStepIndex: number;
+  isHamiltonianPlaying: boolean;
+  matchingStepIndex: number;
+  colouringStepIndex: number;
+  isColouringPlaying: boolean;
+
+  // Topic 1: Matrix power K
+  powerK: number;
+
+  // Topic 2: Query Start/End for Paths & Walks
+  queryStartId: string | null;
+  queryEndId: string | null;
+  walkVertexSequence: string[];
+
+  // Topic 9: Colouring
+  colouringStrategy: 'degree' | 'alphabetical';
+  manualColors: Record<string, number>;
 
   // Preset params
   presetParamN: number;
   presetParamM: number;
 
-  // Store actions
+  // Actions
   setMode: (mode: EditorMode) => void;
   setActiveTopic: (tab: TopicTab) => void;
-  setDirected: (isDirected: boolean) => void;
   toggleDirectedMode: () => void;
   loadPreset: (name: PresetName, n?: number, m?: number) => void;
   clearGraph: () => void;
+  undo: () => void;
+
   addVertexAt: (x: number, y: number) => void;
   moveVertex: (id: string, x: number, y: number) => void;
   selectVertex: (id: string | null) => void;
@@ -60,44 +72,69 @@ interface GraphLabState {
   handleVertexClick: (id: string) => void;
   handleCanvasClick: (x: number, y: number) => void;
   setHoveredElement: (elem: { type: 'vertex' | 'edge'; id: string } | null) => void;
+  setStatusMessage: (msg: { text: string; type: 'info' | 'error' | 'success' } | null) => void;
+  setActiveHighlight: (highlight: HighlightState | null) => void;
+  setCursorPos: (pos: { x: number; y: number } | null) => void;
 
-  // Walk actions
+  // Topic actions
+  setPowerK: (k: number) => void;
+  setQueryStartId: (id: string | null) => void;
+  setQueryEndId: (id: string | null) => void;
   addWalkStep: (vertexId: string) => void;
   popWalkStep: () => void;
   resetWalk: () => void;
 
-  // Coloring actions
-  setManualColor: (vertexId: string, colorIdx: number) => void;
-  applyGreedyColoring: () => void;
-  resetColoring: () => void;
-  setActiveColorPickerIndex: (idx: number) => void;
-
-  // Euler actions
   setEulerStepIndex: (idx: number) => void;
-  nextEulerStep: () => void;
-  prevEulerStep: () => void;
   toggleEulerPlayback: () => void;
+  nextEulerStep: (max: number) => void;
+  prevEulerStep: () => void;
+
+  setHamiltonianStepIndex: (idx: number) => void;
+  toggleHamiltonianPlayback: () => void;
+  nextHamiltonianStep: (max: number) => void;
+  prevHamiltonianStep: () => void;
+
+  setMatchingStepIndex: (idx: number) => void;
+  setColouringStepIndex: (idx: number) => void;
+  toggleColouringPlayback: () => void;
+  nextColouringStep: (max: number) => void;
+  prevColouringStep: () => void;
+
+  setColouringStrategy: (strategy: 'degree' | 'alphabetical') => void;
+  setManualColor: (vertexId: string, colorIdx: number) => void;
+  resetManualColors: () => void;
 }
 
 const DEFAULT_PRESET = generatePreset('k_n', 4);
 
 export const useGraphLab = create<GraphLabState>((set, get) => ({
   graph: DEFAULT_PRESET,
+  history: [],
   mode: 'select',
-  activeTopic: 'properties',
+  activeTopic: 'representations',
   selectedVertexId: null,
   selectedEdgeId: null,
   edgeStartVertexId: null,
   hoveredElement: null,
-
-  walkVertexSequence: [],
-  walkError: null,
-
-  manualColors: {},
-  activeColorPickerIndex: 0,
+  statusMessage: null,
+  activeHighlight: null,
+  cursorPos: null,
 
   eulerStepIndex: 0,
   isEulerPlaying: false,
+  hamiltonianStepIndex: 0,
+  isHamiltonianPlaying: false,
+  matchingStepIndex: 0,
+  colouringStepIndex: 0,
+  isColouringPlaying: false,
+
+  powerK: 2,
+  queryStartId: null,
+  queryEndId: null,
+  walkVertexSequence: [],
+
+  colouringStrategy: 'degree',
+  manualColors: {},
 
   presetParamN: 4,
   presetParamM: 3,
@@ -108,6 +145,7 @@ export const useGraphLab = create<GraphLabState>((set, get) => ({
       edgeStartVertexId: null,
       selectedVertexId: null,
       selectedEdgeId: null,
+      statusMessage: null,
     }),
 
   setActiveTopic: (activeTopic) =>
@@ -115,138 +153,143 @@ export const useGraphLab = create<GraphLabState>((set, get) => ({
       activeTopic,
       eulerStepIndex: 0,
       isEulerPlaying: false,
+      hamiltonianStepIndex: 0,
+      isHamiltonianPlaying: false,
+      matchingStepIndex: 0,
+      colouringStepIndex: 0,
+      isColouringPlaying: false,
+      activeHighlight: null,
     }),
-
-  setDirected: (isDirected) => {
-    const current = get().graph;
-    if (current.isDirected === isDirected) return;
-    set({
-      graph: toggleDirected(current),
-      walkVertexSequence: [],
-      walkError: null,
-      eulerStepIndex: 0,
-    });
-  },
 
   toggleDirectedMode: () => {
     const current = get().graph;
+    const history = [...get().history, current];
     set({
       graph: toggleDirected(current),
-      walkVertexSequence: [],
-      walkError: null,
-      eulerStepIndex: 0,
+      history,
+      statusMessage: {
+        text: `Graph converted to ${!current.isDirected ? 'Directed' : 'Undirected'} mode.`,
+        type: 'info',
+      },
     });
   },
 
   loadPreset: (name, n, m) => {
-    const paramN = n !== undefined ? n : get().presetParamN;
-    const paramM = m !== undefined ? m : get().presetParamM;
-    const newGraph = generatePreset(name, paramN, paramM);
-
+    const current = get().graph;
+    const history = [...get().history, current];
+    const newGraph = generatePreset(
+      name,
+      n ?? get().presetParamN,
+      m ?? get().presetParamM
+    );
     set({
       graph: newGraph,
+      history,
       selectedVertexId: null,
       selectedEdgeId: null,
       edgeStartVertexId: null,
-      walkVertexSequence: [],
-      walkError: null,
-      manualColors: {},
+      activeHighlight: null,
       eulerStepIndex: 0,
-      isEulerPlaying: false,
-      presetParamN: paramN,
-      presetParamM: paramM,
+      hamiltonianStepIndex: 0,
+      matchingStepIndex: 0,
+      colouringStepIndex: 0,
+      walkVertexSequence: [],
+      queryStartId: null,
+      queryEndId: null,
+      statusMessage: { text: `Preset loaded successfully.`, type: 'success' },
     });
   },
 
   clearGraph: () => {
+    const current = get().graph;
+    const history = [...get().history, current];
     set({
-      graph: { vertices: [], edges: [], isDirected: get().graph.isDirected },
+      graph: {
+        vertices: [],
+        edges: [],
+        isDirected: current.isDirected,
+      },
+      history,
       selectedVertexId: null,
       selectedEdgeId: null,
       edgeStartVertexId: null,
+      activeHighlight: null,
       walkVertexSequence: [],
-      walkError: null,
-      manualColors: {},
-      eulerStepIndex: 0,
-      isEulerPlaying: false,
+      queryStartId: null,
+      queryEndId: null,
+      statusMessage: { text: 'Canvas cleared.', type: 'info' },
+    });
+  },
+
+  undo: () => {
+    const history = get().history;
+    if (history.length === 0) {
+      set({ statusMessage: { text: 'Nothing to undo.', type: 'info' } });
+      return;
+    }
+    const previous = history[history.length - 1];
+    set({
+      graph: previous,
+      history: history.slice(0, -1),
+      selectedVertexId: null,
+      selectedEdgeId: null,
+      edgeStartVertexId: null,
+      activeHighlight: null,
+      statusMessage: { text: 'Action undone.', type: 'info' },
     });
   },
 
   addVertexAt: (x, y) => {
-    const { graph } = get();
-    const nextIdx = graph.vertices.length + 1;
-    // Generate alphabet label if <= 26, else V1, V2...
-    const label =
-      nextIdx <= 26
-        ? String.fromCharCode(64 + nextIdx)
-        : `V${nextIdx}`;
-
-    const newVertex: Vertex = {
-      id: `v_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
-      label,
-      x: Math.round(x),
-      y: Math.round(y),
-    };
-
+    const current = get().graph;
+    const history = [...get().history, current];
+    const updated = addVertex(current, x, y);
     set({
-      graph: addVertex(graph, newVertex),
-      selectedVertexId: newVertex.id,
-      selectedEdgeId: null,
+      graph: updated,
+      history,
+      statusMessage: null,
     });
   },
 
   moveVertex: (id, x, y) => {
-    const { graph } = get();
-    const updated = graph.vertices.map((v) =>
-      v.id === id ? { ...v, x: Math.round(x), y: Math.round(y) } : v
-    );
-    set({ graph: { ...graph, vertices: updated } });
+    const current = get().graph;
+    set({
+      graph: {
+        ...current,
+        vertices: current.vertices.map((v) => (v.id === id ? { ...v, x, y } : v)),
+      },
+    });
   },
 
   selectVertex: (id) => set({ selectedVertexId: id, selectedEdgeId: null }),
-
   selectEdge: (id) => set({ selectedEdgeId: id, selectedVertexId: null }),
 
   deleteVertex: (id) => {
-    const { graph, walkVertexSequence } = get();
+    const current = get().graph;
+    const history = [...get().history, current];
+    const updated = removeVertex(current, id);
     set({
-      graph: removeVertex(graph, id),
+      graph: updated,
+      history,
       selectedVertexId: null,
       edgeStartVertexId: null,
-      walkVertexSequence: walkVertexSequence.filter((vId) => vId !== id),
+      statusMessage: { text: 'Vertex deleted.', type: 'info' },
     });
   },
 
   deleteEdge: (id) => {
-    const { graph } = get();
+    const current = get().graph;
+    const history = [...get().history, current];
+    const updated = removeEdge(current, id);
     set({
-      graph: removeEdge(graph, id),
+      graph: updated,
+      history,
       selectedEdgeId: null,
-      walkVertexSequence: [],
-      walkError: null,
+      statusMessage: { text: 'Edge deleted.', type: 'info' },
     });
   },
 
   handleVertexClick: (id) => {
-    const {
-      mode,
-      activeTopic,
-      graph,
-      edgeStartVertexId,
-      activeColorPickerIndex,
-    } = get();
-
-    // If on Walks tab, vertex clicks build walk sequence
-    if (activeTopic === 'walks') {
-      get().addWalkStep(id);
-      return;
-    }
-
-    // If on Coloring tab and click to color
-    if (activeTopic === 'coloring') {
-      get().setManualColor(id, activeColorPickerIndex);
-      return;
-    }
+    const { mode, edgeStartVertexId, graph } = get();
 
     if (mode === 'delete') {
       get().deleteVertex(id);
@@ -255,34 +298,32 @@ export const useGraphLab = create<GraphLabState>((set, get) => ({
 
     if (mode === 'add-edge') {
       if (!edgeStartVertexId) {
-        // First vertex selected
-        set({ edgeStartVertexId: id, selectedVertexId: id });
+        set({
+          edgeStartVertexId: id,
+          statusMessage: { text: 'Click another vertex to connect edge.', type: 'info' },
+        });
       } else {
-        // Second vertex selected -> try adding edge
-        const source = edgeStartVertexId;
-        const target = id;
-        const check = canAddEdge(graph, source, target);
-
+        const check = canAddEdge(graph, edgeStartVertexId, id);
         if (check.valid) {
-          const newEdge: Edge = {
-            id: `e_${source}_${target}_${Date.now()}`,
-            source,
-            target,
-          };
+          const history = [...get().history, graph];
+          const updated = addEdge(graph, edgeStartVertexId, id);
           set({
-            graph: addEdge(graph, newEdge),
+            graph: updated,
+            history,
             edgeStartVertexId: null,
-            selectedVertexId: null,
+            statusMessage: { text: 'Edge connected.', type: 'success' },
           });
         } else {
-          // If invalid (e.g. self-loop or duplicate), switch starting vertex to current clicked one
-          set({ edgeStartVertexId: id, selectedVertexId: id });
+          set({
+            statusMessage: { text: check.reason || 'Cannot add edge.', type: 'error' },
+            edgeStartVertexId: null,
+          });
         }
       }
       return;
     }
 
-    // Default select mode
+    // Select mode
     set({ selectedVertexId: id, selectedEdgeId: null });
   },
 
@@ -299,65 +340,78 @@ export const useGraphLab = create<GraphLabState>((set, get) => ({
     }
   },
 
-  setHoveredElement: (elem) => set({ hoveredElement: elem }),
+  setHoveredElement: (hoveredElement) => set({ hoveredElement }),
+  setStatusMessage: (statusMessage) => set({ statusMessage }),
+  setActiveHighlight: (activeHighlight) => set({ activeHighlight }),
+  setCursorPos: (cursorPos) => set({ cursorPos }),
+
+  setPowerK: (powerK) => set({ powerK }),
+  setQueryStartId: (queryStartId) => set({ queryStartId }),
+  setQueryEndId: (queryEndId) => set({ queryEndId }),
 
   addWalkStep: (vertexId) => {
-    const { graph, walkVertexSequence } = get();
-    if (walkVertexSequence.length === 0) {
-      set({ walkVertexSequence: [vertexId], walkError: null });
-      return;
+    const { walkVertexSequence, graph } = get();
+    if (walkVertexSequence.length > 0) {
+      const last = walkVertexSequence[walkVertexSequence.length - 1];
+      const check = validateStep(graph, last, vertexId);
+      if (!check.isValid) {
+        set({ statusMessage: { text: check.error || 'Invalid step.', type: 'error' } });
+        return;
+      }
     }
-
-    const last = walkVertexSequence[walkVertexSequence.length - 1];
-    const check = validateStep(graph, last, vertexId);
-
-    if (!check.isValid) {
-      set({ walkError: check.error || 'Cannot step to this vertex.' });
-      return;
-    }
-
-    set({
-      walkVertexSequence: [...walkVertexSequence, vertexId],
-      walkError: null,
-    });
+    set({ walkVertexSequence: [...walkVertexSequence, vertexId], statusMessage: null });
   },
 
   popWalkStep: () => {
-    const { walkVertexSequence } = get();
-    if (walkVertexSequence.length <= 1) {
-      set({ walkVertexSequence: [], walkError: null });
-    } else {
-      set({
-        walkVertexSequence: walkVertexSequence.slice(0, -1),
-        walkError: null,
-      });
+    const seq = get().walkVertexSequence;
+    if (seq.length > 0) {
+      set({ walkVertexSequence: seq.slice(0, -1) });
     }
   },
 
-  resetWalk: () => set({ walkVertexSequence: [], walkError: null }),
+  resetWalk: () => set({ walkVertexSequence: [] }),
 
-  setManualColor: (vertexId, colorIdx) => {
-    const current = { ...get().manualColors, [vertexId]: colorIdx };
-    set({ manualColors: current });
-  },
-
-  applyGreedyColoring: () => {
-    const { graph } = get();
-    const greedy = computeGreedyColoring(graph);
-    set({ manualColors: greedy });
-  },
-
-  resetColoring: () => set({ manualColors: {} }),
-
-  setActiveColorPickerIndex: (idx) => set({ activeColorPickerIndex: idx }),
-
-  setEulerStepIndex: (idx) => set({ eulerStepIndex: idx }),
-
-  nextEulerStep: () => set((state) => ({ eulerStepIndex: state.eulerStepIndex + 1 })),
-
+  setEulerStepIndex: (eulerStepIndex) => set({ eulerStepIndex }),
+  toggleEulerPlayback: () => set((s) => ({ isEulerPlaying: !s.isEulerPlaying })),
+  nextEulerStep: (max) =>
+    set((s) => ({
+      eulerStepIndex: s.eulerStepIndex < max ? s.eulerStepIndex + 1 : s.eulerStepIndex,
+      isEulerPlaying: s.eulerStepIndex + 1 >= max ? false : s.isEulerPlaying,
+    })),
   prevEulerStep: () =>
-    set((state) => ({ eulerStepIndex: Math.max(0, state.eulerStepIndex - 1) })),
+    set((s) => ({
+      eulerStepIndex: s.eulerStepIndex > 0 ? s.eulerStepIndex - 1 : 0,
+    })),
 
-  toggleEulerPlayback: () =>
-    set((state) => ({ isEulerPlaying: !state.isEulerPlaying })),
+  setHamiltonianStepIndex: (hamiltonianStepIndex) => set({ hamiltonianStepIndex }),
+  toggleHamiltonianPlayback: () => set((s) => ({ isHamiltonianPlaying: !s.isHamiltonianPlaying })),
+  nextHamiltonianStep: (max) =>
+    set((s) => ({
+      hamiltonianStepIndex: s.hamiltonianStepIndex < max ? s.hamiltonianStepIndex + 1 : s.hamiltonianStepIndex,
+      isHamiltonianPlaying: s.hamiltonianStepIndex + 1 >= max ? false : s.isHamiltonianPlaying,
+    })),
+  prevHamiltonianStep: () =>
+    set((s) => ({
+      hamiltonianStepIndex: s.hamiltonianStepIndex > 0 ? s.hamiltonianStepIndex - 1 : 0,
+    })),
+
+  setMatchingStepIndex: (matchingStepIndex) => set({ matchingStepIndex }),
+  setColouringStepIndex: (colouringStepIndex) => set({ colouringStepIndex }),
+  toggleColouringPlayback: () => set((s) => ({ isColouringPlaying: !s.isColouringPlaying })),
+  nextColouringStep: (max) =>
+    set((s) => ({
+      colouringStepIndex: s.colouringStepIndex < max ? s.colouringStepIndex + 1 : s.colouringStepIndex,
+      isColouringPlaying: s.colouringStepIndex + 1 >= max ? false : s.isColouringPlaying,
+    })),
+  prevColouringStep: () =>
+    set((s) => ({
+      colouringStepIndex: s.colouringStepIndex > 0 ? s.colouringStepIndex - 1 : 0,
+    })),
+
+  setColouringStrategy: (colouringStrategy) => set({ colouringStrategy }),
+  setManualColor: (vertexId, colorIdx) => {
+    const current = get().manualColors;
+    set({ manualColors: { ...current, [vertexId]: colorIdx } });
+  },
+  resetManualColors: () => set({ manualColors: {} }),
 }));

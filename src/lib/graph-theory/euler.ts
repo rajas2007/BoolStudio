@@ -1,93 +1,96 @@
-import { Graph, EulerResult } from '../types/graph';
-import { computeConnectedComponents } from './connectivity';
+import { Graph, EulerResult, AlgorithmOutput, StepInfo } from '../types/graph';
+import { computeDegreesAndConnectivity } from './connectivity';
 
-export function findEulerianPathOrCircuit(graph: Graph): EulerResult {
+export function findEulerianPathOrCircuit(graph: Graph): AlgorithmOutput<EulerResult> {
   const n = graph.vertices.length;
   const m = graph.edges.length;
 
   if (m === 0) {
-    return {
-      hasEulerCircuit: n <= 1,
-      hasEulerTrail: n <= 1,
+    const res: EulerResult = {
+      hasCircuit: n <= 1,
+      hasTrail: n <= 1,
       circuitOrTrail: n === 1 ? [graph.vertices[0].id] : [],
       circuitOrTrailEdges: [],
-      reason: n === 0
-        ? 'The empty graph has no vertices or edges.'
+      oddVertices: [],
+      isDisconnected: false,
+      explanation: n === 0
+        ? 'The empty graph has no edges to traverse.'
         : 'Graph has 0 edges. A single vertex trivially has an empty Euler circuit.',
-      oddDegreeVertices: [],
+    };
+    return {
+      result: res,
+      explanation: res.explanation,
+      highlight: { vertices: res.circuitOrTrail, edges: [] },
+      steps: [],
     };
   }
 
-  // Check connectivity of non-isolated vertices
+  // Check connectivity of vertices with non-zero degree
   const verticesWithEdges = new Set<string>();
   for (const e of graph.edges) {
     verticesWithEdges.add(e.source);
     verticesWithEdges.add(e.target);
   }
 
-  const compResult = computeConnectedComponents(graph);
-  // Count how many components have edges
-  const componentsWithEdges = compResult.components.filter((comp) =>
+  const conn = computeDegreesAndConnectivity(graph);
+  const componentsWithEdges = conn.result.components.groups.filter((comp) =>
     comp.some((vId) => verticesWithEdges.has(vId))
   );
 
   if (componentsWithEdges.length > 1) {
-    return {
-      hasEulerCircuit: false,
-      hasEulerTrail: false,
+    const res: EulerResult = {
+      hasCircuit: false,
+      hasTrail: false,
       circuitOrTrail: [],
       circuitOrTrailEdges: [],
-      reason: 'Graph is disconnected: edges belong to multiple separated components. All edges must belong to a single connected component.',
-      oddDegreeVertices: [],
+      oddVertices: conn.result.oddDegreeVertices,
+      isDisconnected: true,
+      explanation: 'Graph is disconnected: edges belong to multiple separated components. All edges must belong to a single connected component.',
+    };
+    return {
+      result: res,
+      explanation: res.explanation,
+      highlight: { vertices: conn.result.oddDegreeVertices, edges: [] },
+      steps: [],
     };
   }
 
   if (graph.isDirected) {
     return findDirectedEuler(graph);
   } else {
-    return findUndirectedEuler(graph);
+    return findUndirectedEuler(graph, conn.result);
   }
 }
 
-function findUndirectedEuler(graph: Graph): EulerResult {
-  const degrees: Record<string, number> = {};
-  for (const v of graph.vertices) degrees[v.id] = 0;
-  for (const e of graph.edges) {
-    degrees[e.source]++;
-    degrees[e.target]++;
-  }
+function findUndirectedEuler(
+  graph: Graph,
+  connResult: { oddDegreeVertices: string[] }
+): AlgorithmOutput<EulerResult> {
+  const oddVertices = connResult.oddDegreeVertices;
+  const hasCircuit = oddVertices.length === 0;
+  const hasTrail = oddVertices.length === 2;
 
-  const oddDegreeVertices: string[] = [];
-  for (const v of graph.vertices) {
-    if (degrees[v.id] % 2 !== 0) {
-      oddDegreeVertices.push(v.id);
-    }
-  }
-
-  const hasEulerCircuit = oddDegreeVertices.length === 0;
-  const hasEulerTrail = oddDegreeVertices.length === 2;
-
-  let reason = '';
-  if (hasEulerCircuit) {
-    reason = 'All vertices have even degrees and all edges belong to a single connected component. An Euler Circuit exists.';
-  } else if (hasEulerTrail) {
-    const v1Label = graph.vertices.find((v) => v.id === oddDegreeVertices[0])?.label || oddDegreeVertices[0];
-    const v2Label = graph.vertices.find((v) => v.id === oddDegreeVertices[1])?.label || oddDegreeVertices[1];
-    reason = `Exactly two vertices have odd degree ('${v1Label}', '${v2Label}'). An open Euler Trail exists between them, but no closed circuit.`;
-  } else {
-    reason = `Graph has ${oddDegreeVertices.length} vertices with odd degree. An Euler path requires 0 (for circuit) or 2 (for open trail) odd vertices.`;
-    return {
-      hasEulerCircuit: false,
-      hasEulerTrail: false,
+  if (!hasCircuit && !hasTrail) {
+    const oddLabels = oddVertices.map(id => graph.vertices.find(v => v.id === id)?.label || id);
+    const explanation = `No Euler tour or trail: Graph has ${oddVertices.length} odd-degree vertices (${oddLabels.join(', ')}). An Euler circuit requires 0 odd vertices; an Euler trail requires exactly 2.`;
+    const res: EulerResult = {
+      hasCircuit: false,
+      hasTrail: false,
       circuitOrTrail: [],
       circuitOrTrailEdges: [],
-      reason,
-      oddDegreeVertices,
+      oddVertices,
+      isDisconnected: false,
+      explanation,
+    };
+    return {
+      result: res,
+      explanation,
+      highlight: { vertices: oddVertices, edges: [] },
+      steps: [],
     };
   }
 
-  // Hierholzer's algorithm for undirected graph
-  // Build adjacency list with edge references and tracking
+  // Hierholzer's algorithm
   type EdgeRef = { target: string; edgeId: string; used: boolean };
   const adj = new Map<string, EdgeRef[]>();
   for (const v of graph.vertices) adj.set(v.id, []);
@@ -99,161 +102,208 @@ function findUndirectedEuler(graph: Graph): EulerResult {
     adj.get(e.target)?.push({ target: e.source, edgeId: e.id, used: false });
   }
 
-  // Start vertex: if trail, one of the odd degree vertices; else any vertex with degree > 0
-  const startVertex = hasEulerTrail
-    ? oddDegreeVertices[0]
-    : graph.vertices.find((v) => degrees[v.id] > 0)?.id || graph.vertices[0].id;
+  // Start vertex: one of the odd vertices for trail, or any vertex with edges for circuit
+  const startId = hasTrail ? oddVertices[0] : (graph.edges[0]?.source || graph.vertices[0].id);
 
-  const stack: { vertex: string; edgeId: string | null }[] = [{ vertex: startVertex, edgeId: null }];
-  const path: string[] = [];
-  const pathEdges: string[] = [];
+  const stack: string[] = [startId];
+  const edgeStack: string[] = [];
+  const finalPath: string[] = [];
+  const finalEdges: string[] = [];
 
   while (stack.length > 0) {
-    const current = stack[stack.length - 1];
-    const neighbors = adj.get(current.vertex) || [];
-    let foundUnused = false;
+    const curr = stack[stack.length - 1];
+    const neighbors = adj.get(curr) || [];
+    const nextEdge = neighbors.find((e) => !edgeMap.get(e.edgeId)?.used);
 
-    for (const ref of neighbors) {
-      const eInfo = edgeMap.get(ref.edgeId);
-      if (eInfo && !eInfo.used) {
-        eInfo.used = true;
-        stack.push({ vertex: ref.target, edgeId: ref.edgeId });
-        foundUnused = true;
-        break;
-      }
-    }
-
-    if (!foundUnused) {
-      const popped = stack.pop()!;
-      path.push(popped.vertex);
-      if (popped.edgeId) {
-        pathEdges.push(popped.edgeId);
+    if (nextEdge) {
+      edgeMap.get(nextEdge.edgeId)!.used = true;
+      stack.push(nextEdge.target);
+      edgeStack.push(nextEdge.edgeId);
+    } else {
+      finalPath.push(stack.pop()!);
+      if (edgeStack.length > 0) {
+        finalEdges.push(edgeStack.pop()!);
       }
     }
   }
 
-  path.reverse();
-  pathEdges.reverse();
+  finalPath.reverse();
+  finalEdges.reverse();
+
+  // Generate step-by-step frames for "Show steps"
+  const steps: StepInfo[] = [];
+  steps.push({
+    stepIndex: 0,
+    description: `Start at vertex '${graph.vertices.find(v => v.id === finalPath[0])?.label}'.`,
+    highlight: { vertices: [finalPath[0]], edges: [] },
+  });
+
+  for (let i = 0; i < finalEdges.length; i++) {
+    const subVertices = finalPath.slice(0, i + 2);
+    const subEdges = finalEdges.slice(0, i + 1);
+    const currentV = graph.vertices.find(v => v.id === finalPath[i + 1])?.label;
+    steps.push({
+      stepIndex: i + 1,
+      description: `Step ${i + 1}: Traverse edge to vertex '${currentV}'.`,
+      highlight: { vertices: subVertices, edges: subEdges },
+    });
+  }
+
+  const startLabel = graph.vertices.find(v => v.id === finalPath[0])?.label;
+  const endLabel = graph.vertices.find(v => v.id === finalPath[finalPath.length - 1])?.label;
+
+  const explanation = hasCircuit
+    ? `Euler Circuit found! All vertices have even degree. Traverses all ${graph.edges.length} edges, starting and ending at '${startLabel}'.`
+    : `Euler Trail found! Exactly 2 odd-degree vertices. Traverses all ${graph.edges.length} edges from '${startLabel}' to '${endLabel}'.`;
+
+  const res: EulerResult = {
+    hasCircuit,
+    hasTrail,
+    circuitOrTrail: finalPath,
+    circuitOrTrailEdges: finalEdges,
+    oddVertices,
+    isDisconnected: false,
+    explanation,
+  };
 
   return {
-    hasEulerCircuit,
-    hasEulerTrail,
-    circuitOrTrail: path,
-    circuitOrTrailEdges: pathEdges,
-    reason,
-    oddDegreeVertices,
+    result: res,
+    explanation,
+    highlight: { vertices: finalPath, edges: finalEdges },
+    steps,
   };
 }
 
-function findDirectedEuler(graph: Graph): EulerResult {
-  const inDeg: Record<string, number> = {};
-  const outDeg: Record<string, number> = {};
+function findDirectedEuler(
+  graph: Graph
+): AlgorithmOutput<EulerResult> {
+  const inDegree: Record<string, number> = {};
+  const outDegree: Record<string, number> = {};
   for (const v of graph.vertices) {
-    inDeg[v.id] = 0;
-    outDeg[v.id] = 0;
+    inDegree[v.id] = 0;
+    outDegree[v.id] = 0;
   }
+
   for (const e of graph.edges) {
-    outDeg[e.source]++;
-    inDeg[e.target]++;
+    outDegree[e.source]++;
+    inDegree[e.target]++;
   }
 
   let startNode: string | null = null;
   let endNode: string | null = null;
+  let unbalanced = 0;
+  const unbalancedList: string[] = [];
 
   for (const v of graph.vertices) {
-    const diff = outDeg[v.id] - inDeg[v.id];
+    const diff = outDegree[v.id] - inDegree[v.id];
     if (diff === 1) {
-      if (startNode === null) startNode = v.id;
-      else return {
-        hasEulerCircuit: false,
-        hasEulerTrail: false,
-        circuitOrTrail: [],
-        circuitOrTrailEdges: [],
-        reason: 'More than one vertex has out-degree - in-degree = 1. Directed Euler trail is impossible.',
-        oddDegreeVertices: [],
-      };
+      startNode = v.id;
+      unbalanced++;
+      unbalancedList.push(v.id);
     } else if (diff === -1) {
-      if (endNode === null) endNode = v.id;
-      else return {
-        hasEulerCircuit: false,
-        hasEulerTrail: false,
-        circuitOrTrail: [],
-        circuitOrTrailEdges: [],
-        reason: 'More than one vertex has in-degree - out-degree = 1. Directed Euler trail is impossible.',
-        oddDegreeVertices: [],
-      };
-    } else if (diff === 0) {
-      // Balanced node
-    } else {
-      return {
-        hasEulerCircuit: false,
-        hasEulerTrail: false,
-        circuitOrTrail: [],
-        circuitOrTrailEdges: [],
-        reason: `Vertex '${v.label}' has |in-degree - out-degree| > 1. Euler trail is impossible.`,
-        oddDegreeVertices: [],
-      };
+      endNode = v.id;
+      unbalanced++;
+      unbalancedList.push(v.id);
+    } else if (diff !== 0) {
+      unbalanced++;
+      unbalancedList.push(v.id);
     }
   }
 
-  const hasEulerCircuit = startNode === null && endNode === null;
-  const hasEulerTrail = (startNode !== null && endNode !== null) || hasEulerCircuit;
+  const hasCircuit = unbalanced === 0;
+  const hasTrail = unbalanced === 2 && startNode !== null && endNode !== null;
 
-  if (!hasEulerTrail) {
-    return {
-      hasEulerCircuit: false,
-      hasEulerTrail: false,
+  if (!hasCircuit && !hasTrail) {
+    const explanation = `Directed graph has no Euler tour: in-degrees and out-degrees are unbalanced for ${unbalanced} vertices.`;
+    const res: EulerResult = {
+      hasCircuit: false,
+      hasTrail: false,
       circuitOrTrail: [],
       circuitOrTrailEdges: [],
-      reason: 'Directed graph does not satisfy degree balance conditions.',
-      oddDegreeVertices: [],
+      oddVertices: [],
+      unbalancedVertices: unbalancedList,
+      isDisconnected: false,
+      explanation,
+    };
+    return {
+      result: res,
+      explanation,
+      highlight: { vertices: unbalancedList, edges: [] },
+      steps: [],
     };
   }
 
-  const startVertex = startNode || graph.vertices.find((v) => outDeg[v.id] > 0)?.id || graph.vertices[0].id;
-
-  // Hierholzer for directed
-  type DirEdge = { target: string; edgeId: string; used: boolean };
-  const adj = new Map<string, DirEdge[]>();
+  // Directed Hierholzer's
+  const adj = new Map<string, { target: string; edgeId: string; used: boolean }[]>();
   for (const v of graph.vertices) adj.set(v.id, []);
   for (const e of graph.edges) {
     adj.get(e.source)?.push({ target: e.target, edgeId: e.id, used: false });
   }
 
-  const stack: { vertex: string; edgeId: string | null }[] = [{ vertex: startVertex, edgeId: null }];
-  const path: string[] = [];
-  const pathEdges: string[] = [];
+  const effectiveStart = startNode || (graph.edges[0]?.source || graph.vertices[0].id);
+
+  const stack: string[] = [effectiveStart];
+  const edgeStack: string[] = [];
+  const finalPath: string[] = [];
+  const finalEdges: string[] = [];
 
   while (stack.length > 0) {
-    const current = stack[stack.length - 1];
-    const neighbors = adj.get(current.vertex) || [];
-    const unusedEdge = neighbors.find((e) => !e.used);
+    const curr = stack[stack.length - 1];
+    const neighbors = adj.get(curr) || [];
+    const nextEdge = neighbors.find((e) => !e.used);
 
-    if (unusedEdge) {
-      unusedEdge.used = true;
-      stack.push({ vertex: unusedEdge.target, edgeId: unusedEdge.edgeId });
+    if (nextEdge) {
+      nextEdge.used = true;
+      stack.push(nextEdge.target);
+      edgeStack.push(nextEdge.edgeId);
     } else {
-      const popped = stack.pop()!;
-      path.push(popped.vertex);
-      if (popped.edgeId) {
-        pathEdges.push(popped.edgeId);
+      finalPath.push(stack.pop()!);
+      if (edgeStack.length > 0) {
+        finalEdges.push(edgeStack.pop()!);
       }
     }
   }
 
-  path.reverse();
-  pathEdges.reverse();
+  finalPath.reverse();
+  finalEdges.reverse();
 
-  const reason = hasEulerCircuit
-    ? 'For every vertex in the directed graph, in-degree = out-degree. A directed Euler Circuit exists.'
-    : 'Graph has one vertex with out-degree = in-degree + 1 and one with in-degree = out-degree + 1, with all other vertices balanced. An open directed Euler Trail exists.';
+  const steps: StepInfo[] = [];
+  steps.push({
+    stepIndex: 0,
+    description: `Start at vertex '${graph.vertices.find(v => v.id === finalPath[0])?.label}'.`,
+    highlight: { vertices: [finalPath[0]], edges: [] },
+  });
+
+  for (let i = 0; i < finalEdges.length; i++) {
+    const subVertices = finalPath.slice(0, i + 2);
+    const subEdges = finalEdges.slice(0, i + 1);
+    const currentV = graph.vertices.find(v => v.id === finalPath[i + 1])?.label;
+    steps.push({
+      stepIndex: i + 1,
+      description: `Step ${i + 1}: Traverse directed arc to '${currentV}'.`,
+      highlight: { vertices: subVertices, edges: subEdges },
+    });
+  }
+
+  const explanation = hasCircuit
+    ? `Directed Euler Circuit found! Every vertex has in-deg = out-deg.`
+    : `Directed Euler Trail found from '${graph.vertices.find(v => v.id === startNode)?.label}' to '${graph.vertices.find(v => v.id === endNode)?.label}'.`;
+
+  const res: EulerResult = {
+    hasCircuit,
+    hasTrail,
+    circuitOrTrail: finalPath,
+    circuitOrTrailEdges: finalEdges,
+    oddVertices: [],
+    unbalancedVertices: unbalancedList,
+    isDisconnected: false,
+    explanation,
+  };
 
   return {
-    hasEulerCircuit,
-    hasEulerTrail,
-    circuitOrTrail: path,
-    circuitOrTrailEdges: pathEdges,
-    reason,
-    oddDegreeVertices: [startNode, endNode].filter(Boolean) as string[],
+    result: res,
+    explanation,
+    highlight: { vertices: finalPath, edges: finalEdges },
+    steps,
   };
 }

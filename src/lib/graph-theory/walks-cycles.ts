@@ -1,4 +1,4 @@
-import { Graph, WalkAnalysis, WalkClassification } from '../types/graph';
+import { Graph, WalkAnalysis, WalkClassification, AlgorithmOutput } from '../types/graph';
 
 export function validateStep(
   graph: Graph,
@@ -27,9 +27,9 @@ export function validateStep(
   return { isValid: true, edgeId: edge.id };
 }
 
-export function analyzeWalk(graph: Graph, vertexSequence: string[]): WalkAnalysis {
+export function analyzeWalk(graph: Graph, vertexSequence: string[]): AlgorithmOutput<WalkAnalysis> {
   if (vertexSequence.length === 0) {
-    return {
+    const res: WalkAnalysis = {
       isValid: false,
       vertices: [],
       edgeIds: [],
@@ -43,10 +43,15 @@ export function analyzeWalk(graph: Graph, vertexSequence: string[]): WalkAnalysi
       classification: 'Invalid',
       explanation: 'No vertices selected. Click vertices on the canvas to build a walk.',
     };
+    return {
+      result: res,
+      explanation: res.explanation,
+      highlight: { vertices: [], edges: [] },
+    };
   }
 
   if (vertexSequence.length === 1) {
-    return {
+    const res: WalkAnalysis = {
       isValid: true,
       vertices: vertexSequence,
       edgeIds: [],
@@ -60,6 +65,11 @@ export function analyzeWalk(graph: Graph, vertexSequence: string[]): WalkAnalysi
       classification: 'Path',
       explanation: 'A trivial path of length 0 consisting of a single vertex.',
     };
+    return {
+      result: res,
+      explanation: res.explanation,
+      highlight: { vertices: vertexSequence, edges: [] },
+    };
   }
 
   const edgeIds: string[] = [];
@@ -70,7 +80,7 @@ export function analyzeWalk(graph: Graph, vertexSequence: string[]): WalkAnalysi
     const v = vertexSequence[i + 1];
     const check = validateStep(graph, u, v);
     if (!check.isValid || !check.edgeId) {
-      return {
+      const res: WalkAnalysis = {
         isValid: false,
         vertices: vertexSequence,
         edgeIds,
@@ -82,8 +92,12 @@ export function analyzeWalk(graph: Graph, vertexSequence: string[]): WalkAnalysi
         isCircuit: false,
         isCycle: false,
         classification: 'Invalid',
-        explanation: check.error || 'Invalid step in walk.',
-        error: check.error,
+        explanation: check.error || 'Invalid step: edge does not exist.',
+      };
+      return {
+        result: res,
+        explanation: res.explanation,
+        highlight: { vertices: [u, v], edges: edgeIds },
       };
     }
     edgeIds.push(check.edgeId);
@@ -96,50 +110,46 @@ export function analyzeWalk(graph: Graph, vertexSequence: string[]): WalkAnalysi
   const isClosed = first === last && length > 0;
   const isOpen = !isClosed;
 
-  // Check unique edges (trail condition)
+  // Trail: no repeated edges
   const uniqueEdges = new Set(traversedEdges);
   const isTrail = uniqueEdges.size === traversedEdges.length;
 
-  // Check unique vertices (path condition)
-  // For open path: all vertices distinct
-  // For cycle: first == last, and all intermediate vertices distinct, length >= 3 for undirected (or >= 2 for directed)
-  const allVerticesUnique = new Set(vertexSequence).size === vertexSequence.length;
-  const isPath = isOpen && allVerticesUnique;
+  // Path: no repeated vertices (except start === end if closed cycle)
+  const internalVertices = isClosed ? vertexSequence.slice(0, -1) : vertexSequence;
+  const uniqueVertices = new Set(internalVertices);
+  const isPath = uniqueVertices.size === internalVertices.length;
 
+  // Circuit: closed trail
+  const isCircuit = isClosed && isTrail;
+
+  // Cycle: closed path (length >= 3 for undirected simple graph, length >= 2 for directed)
   const minCycleLength = graph.isDirected ? 2 : 3;
-  const intermediateVertices = vertexSequence.slice(0, -1);
-  const intermediateUnique = new Set(intermediateVertices).size === intermediateVertices.length;
-  const isCycle = isClosed && intermediateUnique && length >= minCycleLength;
-  const isCircuit = isClosed && isTrail && length > 0;
+  const isCycle = isClosed && isPath && length >= minCycleLength;
 
   let classification: WalkClassification = 'Walk';
   let explanation = '';
 
-  if (isClosed) {
-    if (isCycle) {
-      classification = 'Cycle';
-      explanation = `Cycle of length ${length}: Starts and ends at '${graph.vertices.find((v) => v.id === first)?.label}', with all intermediate vertices and edges distinct.`;
-    } else if (isCircuit) {
-      classification = 'Circuit';
-      explanation = `Circuit of length ${length}: Closed trail (starts and ends at '${graph.vertices.find((v) => v.id === first)?.label}') with no repeated edges.`;
-    } else {
-      classification = 'Closed Walk';
-      explanation = `Closed Walk of length ${length}: Starts and ends at '${graph.vertices.find((v) => v.id === first)?.label}', but contains repeated edges or intermediate vertices.`;
-    }
+  if (isCycle) {
+    classification = 'Cycle';
+    explanation = `Closed path of length ${length}: starts and ends at '${graph.vertices.find(v => v.id === first)?.label}', visiting no vertex twice.`;
+  } else if (isCircuit) {
+    classification = 'Circuit';
+    explanation = `Closed trail of length ${length}: starts and ends at '${graph.vertices.find(v => v.id === first)?.label}', repeating no edges.`;
+  } else if (isClosed) {
+    classification = 'Closed Walk';
+    explanation = `Closed walk of length ${length}: starts and ends at the same vertex, with repeated edges or vertices.`;
+  } else if (isPath) {
+    classification = 'Path';
+    explanation = `Open path of length ${length}: visits no vertex twice (and repeats no edges).`;
+  } else if (isTrail) {
+    classification = 'Trail';
+    explanation = `Open trail of length ${length}: repeats no edges, but revisits one or more vertices.`;
   } else {
-    if (isPath) {
-      classification = 'Path';
-      explanation = `Path of length ${length}: Open walk with all distinct vertices and edges.`;
-    } else if (isTrail) {
-      classification = 'Trail';
-      explanation = `Trail of length ${length}: Open walk with all edges distinct, but some vertices are revisited.`;
-    } else {
-      classification = 'Walk';
-      explanation = `Walk of length ${length}: Alternating sequence of vertices and edges with repeated edges and vertices.`;
-    }
+    classification = 'Walk';
+    explanation = `General open walk of length ${length} with repeated vertices or edges.`;
   }
 
-  return {
+  const res: WalkAnalysis = {
     isValid: true,
     vertices: vertexSequence,
     edgeIds,
@@ -152,5 +162,14 @@ export function analyzeWalk(graph: Graph, vertexSequence: string[]): WalkAnalysi
     isCycle,
     classification,
     explanation,
+  };
+
+  return {
+    result: res,
+    explanation,
+    highlight: {
+      vertices: vertexSequence,
+      edges: edgeIds,
+    },
   };
 }

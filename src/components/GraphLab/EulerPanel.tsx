@@ -9,10 +9,10 @@ import {
   Pause,
   SkipForward,
   SkipBack,
+  ChevronLeft,
+  ChevronRight,
   CheckCircle2,
   XCircle,
-  HelpCircle,
-  ArrowRight,
   Sparkles,
 } from 'lucide-react';
 
@@ -22,30 +22,40 @@ export function EulerPanel() {
     eulerStepIndex,
     isEulerPlaying,
     setEulerStepIndex,
+    toggleEulerPlayback,
     nextEulerStep,
     prevEulerStep,
-    toggleEulerPlayback,
+    setActiveHighlight,
+    loadPreset,
   } = useGraphLab();
 
-  const euler = useMemo(() => findEulerianPathOrCircuit(graph), [graph]);
+  const output = useMemo(() => findEulerianPathOrCircuit(graph), [graph]);
+  const data = output.result;
+  const steps = useMemo(() => output.steps || [], [output.steps]);
+  const maxStep = Math.max(0, steps.length - 1);
 
-  const maxSteps = euler.circuitOrTrail.length > 0 ? euler.circuitOrTrail.length - 1 : 0;
-
-  // Animation timer for playback
+  // Sync canvas highlight with current step
   useEffect(() => {
-    if (!isEulerPlaying || maxSteps === 0) return;
+    if (steps.length > 0 && steps[eulerStepIndex]) {
+      setActiveHighlight(steps[eulerStepIndex].highlight);
+    } else {
+      setActiveHighlight(output.highlight);
+    }
+  }, [eulerStepIndex, steps, output.highlight, setActiveHighlight]);
 
+  // Playback loop
+  useEffect(() => {
+    if (!isEulerPlaying || maxStep === 0) return;
     const interval = setInterval(() => {
       const current = useGraphLab.getState().eulerStepIndex;
-      if (current >= maxSteps) {
+      if (current >= maxStep) {
         useGraphLab.getState().toggleEulerPlayback();
       } else {
-        useGraphLab.getState().nextEulerStep();
+        useGraphLab.getState().nextEulerStep(maxStep);
       }
     }, 700);
-
     return () => clearInterval(interval);
-  }, [isEulerPlaying, maxSteps]);
+  }, [isEulerPlaying, maxStep]);
 
   const vertexLabelMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -53,184 +63,177 @@ export function EulerPanel() {
     return map;
   }, [graph.vertices]);
 
-  const hasPath = euler.hasEulerCircuit || euler.hasEulerTrail;
+  const hasSolution = data.hasCircuit || data.hasTrail;
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 text-slate-200">
+      {/* Header & Definition */}
+      <div className="flex flex-col gap-2 pb-4 border-b border-slate-800">
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <span className="text-xs font-bold uppercase tracking-wider text-indigo-400">
+            Syllabus Unit 6 • Topic 3
+          </span>
+          <button
+            type="button"
+            onClick={() => loadPreset('cycle')}
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-600/20 text-indigo-300 hover:bg-indigo-600/30 border border-indigo-500/30 text-xs font-medium transition-colors"
+          >
+            <RotateCcw className="w-3 h-3" />
+            <span>Try Cycle (C₅)</span>
+          </button>
+        </div>
+        <h2 className="text-lg font-bold text-white">Euler Tours &amp; Trails</h2>
+        <p className="text-xs text-slate-400 leading-relaxed">
+          An <strong>Eulerian Circuit</strong> traverses every edge exactly once and returns to the start vertex.
+          An <strong>Eulerian Trail</strong> traverses every edge exactly once but starts and ends at distinct vertices.
+        </p>
+      </div>
+
       {/* Existence Status Banner */}
       <div
-        className={`p-5 rounded-2xl border flex items-center justify-between flex-wrap gap-4 ${
-          euler.hasEulerCircuit
+        className={`p-4 rounded-xl border flex items-center justify-between flex-wrap gap-3 ${
+          data.hasCircuit
             ? 'bg-emerald-950/20 border-emerald-500/30'
-            : euler.hasEulerTrail
+            : data.hasTrail
             ? 'bg-indigo-950/20 border-indigo-500/30'
             : 'bg-rose-950/20 border-rose-500/30'
         }`}
       >
         <div className="flex items-center gap-3">
-          {hasPath ? (
-            <CheckCircle2 className="w-6 h-6 text-emerald-400" />
+          {hasSolution ? (
+            <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
           ) : (
-            <XCircle className="w-6 h-6 text-rose-400" />
+            <XCircle className="w-5 h-5 text-rose-400 shrink-0" />
           )}
-
           <div className="flex flex-col">
-            <h3 className="text-base font-bold text-white">
-              {euler.hasEulerCircuit
+            <h3 className="text-sm font-bold text-white">
+              {data.hasCircuit
                 ? 'Eulerian Circuit Exists'
-                : euler.hasEulerTrail
-                ? 'Eulerian Trail (Open) Exists'
-                : 'No Eulerian Trail or Circuit'}
+                : data.hasTrail
+                ? 'Eulerian Trail Exists'
+                : 'No Eulerian Tour or Trail'}
             </h3>
-            <span className="text-xs text-slate-300 max-w-xl leading-relaxed">
-              {euler.reason}
+            <span className="text-xs text-slate-300 leading-relaxed">
+              {output.explanation}
             </span>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="text-xs uppercase font-bold text-slate-400">
-            Odd Degree Vertices:
-          </span>
-          <span className="text-xl font-bold font-mono text-white px-3 py-1 rounded-xl bg-slate-900 border border-slate-800">
-            {euler.oddDegreeVertices.length}
+          <span className="text-[11px] uppercase tracking-wider text-slate-400">Odd Vertices:</span>
+          <span className="font-mono font-bold text-sm px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-white">
+            {data.oddVertices.length}
           </span>
         </div>
       </div>
 
-      {/* Hierholzer Traversal Animation & Step-Through Player */}
-      {hasPath && maxSteps > 0 && (
-        <div className="p-5 rounded-2xl glass-panel border border-slate-800 flex flex-col gap-4">
-          <div className="flex items-center justify-between flex-wrap gap-2">
+      {/* Theorem Check Details */}
+      <div className="p-3.5 rounded-xl bg-slate-900/40 border border-slate-800 text-xs flex flex-col gap-2">
+        <span className="font-semibold text-white">Euler&apos;s Theorem Conditions:</span>
+        <div className="space-y-1 text-slate-300">
+          <div>
+            1. <strong>Connectivity:</strong> All edges must belong to a single connected component. (
+            <span className={data.isDisconnected ? 'text-rose-400 font-bold' : 'text-emerald-400'}>
+              {data.isDisconnected ? 'Disconnected' : 'Connected'}
+            </span>
+            )
+          </div>
+          <div>
+            2. <strong>Degree Parity:</strong>
+            {graph.isDirected ? (
+              <span> Every vertex must satisfy in-deg = out-deg (circuit) or exactly one pair has diff ±1 (trail).</span>
+            ) : (
+              <span> Exactly 0 odd vertices (circuit) or exactly 2 odd vertices (trail).</span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Hierholzer's Algorithm Step Player */}
+      {hasSolution && steps.length > 0 && (
+        <div className="p-4 rounded-xl bg-slate-900/50 border border-slate-800 flex flex-col gap-3">
+          <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-emerald-400" />
-              <h4 className="text-sm font-bold text-white uppercase tracking-wider">
-                Hierholzer Traversal Player
-              </h4>
+              <h3 className="text-sm font-bold text-white">Hierholzer&apos;s Step Player</h3>
             </div>
-
             <span className="text-xs font-mono text-slate-400">
-              Step {eulerStepIndex} of {maxSteps} edges traversed
+              Step <strong className="text-white">{eulerStepIndex}</strong> of {maxStep}
             </span>
           </div>
 
-          {/* Player Controls Bar */}
-          <div className="flex items-center justify-center gap-2 p-2 rounded-xl bg-slate-900/80 border border-slate-800">
+          {/* Current Step Description */}
+          <div className="p-2.5 rounded-lg bg-slate-950 border border-slate-800 text-xs text-emerald-300 font-mono">
+            {steps[eulerStepIndex]?.description || 'Step complete'}
+          </div>
+
+          {/* Scrubber slider */}
+          <input
+            type="range"
+            min={0}
+            max={maxStep}
+            value={eulerStepIndex}
+            onChange={(e) => setEulerStepIndex(Number(e.target.value))}
+            className="w-full accent-emerald-500 cursor-pointer"
+          />
+
+          {/* Player controls */}
+          <div className="flex items-center justify-center gap-2">
             <button
+              type="button"
               onClick={() => setEulerStepIndex(0)}
-              className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
-              title="Reset to beginning"
-            >
-              <RotateCcw className="w-4 h-4" />
-            </button>
-            <button
-              onClick={prevEulerStep}
-              disabled={eulerStepIndex <= 0}
-              className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-              title="Previous step"
+              disabled={eulerStepIndex === 0}
+              className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-30 text-white transition-colors"
+              title="First step"
             >
               <SkipBack className="w-4 h-4" />
             </button>
             <button
-              onClick={toggleEulerPlayback}
-              className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold flex items-center gap-1.5 shadow-md shadow-emerald-600/30 transition-all text-xs"
+              type="button"
+              onClick={prevEulerStep}
+              disabled={eulerStepIndex === 0}
+              className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-30 text-white transition-colors"
+              title="Previous step"
             >
-              {isEulerPlaying ? (
-                <>
-                  <Pause className="w-4 h-4" />
-                  <span>Pause</span>
-                </>
-              ) : (
-                <>
-                  <Play className="w-4 h-4" />
-                  <span>{eulerStepIndex >= maxSteps ? 'Replay' : 'Play'}</span>
-                </>
-              )}
+              <ChevronLeft className="w-4 h-4" />
             </button>
             <button
-              onClick={nextEulerStep}
-              disabled={eulerStepIndex >= maxSteps}
-              className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              type="button"
+              onClick={toggleEulerPlayback}
+              className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs flex items-center gap-1.5 transition-colors shadow-md shadow-emerald-600/20"
+            >
+              {isEulerPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+              <span>{isEulerPlaying ? 'Pause' : 'Play'}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => nextEulerStep(maxStep)}
+              disabled={eulerStepIndex >= maxStep}
+              className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-30 text-white transition-colors"
               title="Next step"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setEulerStepIndex(maxStep)}
+              disabled={eulerStepIndex >= maxStep}
+              className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-30 text-white transition-colors"
+              title="Last step"
             >
               <SkipForward className="w-4 h-4" />
             </button>
           </div>
 
-          {/* Scrubber Range Input */}
-          <input
-            type="range"
-            min="0"
-            max={maxSteps}
-            value={eulerStepIndex}
-            onChange={(e) => setEulerStepIndex(Number(e.target.value))}
-            className="w-full accent-emerald-500 h-1.5 bg-slate-800 rounded-lg cursor-pointer"
-          />
-
-          {/* Traversed Path Chips */}
-          <div className="flex flex-col gap-2">
-            <span className="text-xs text-slate-400 font-semibold">
-              Euler Traversal Sequence:
-            </span>
-            <div className="flex items-center gap-1.5 flex-wrap font-mono text-xs max-h-36 overflow-y-auto p-3 rounded-xl bg-slate-950/60 border border-slate-800">
-              {euler.circuitOrTrail.map((vId, idx) => {
-                const label = vertexLabelMap.get(vId) || vId;
-                const isTraversed = idx <= eulerStepIndex;
-
-                return (
-                  <React.Fragment key={idx}>
-                    <span
-                      className={`px-2 py-0.5 rounded font-bold transition-all ${
-                        idx === eulerStepIndex
-                          ? 'bg-emerald-500 text-slate-950 ring-2 ring-emerald-400 scale-105'
-                          : isTraversed
-                          ? 'bg-emerald-900/40 text-emerald-300 border border-emerald-500/30'
-                          : 'bg-slate-800 text-slate-500'
-                      }`}
-                    >
-                      {label}
-                    </span>
-                    {idx < euler.circuitOrTrail.length - 1 && (
-                      <ArrowRight
-                        className={`w-3 h-3 ${
-                          idx < eulerStepIndex ? 'text-emerald-400' : 'text-slate-700'
-                        }`}
-                      />
-                    )}
-                  </React.Fragment>
-                );
-              })}
+          {/* Full Sequence Display */}
+          <div className="pt-2 border-t border-slate-800 text-xs">
+            <span className="text-slate-400 block mb-1">Full Traversal Sequence:</span>
+            <div className="font-mono text-xs text-emerald-300 break-words bg-slate-950 p-2.5 rounded-lg border border-slate-800">
+              {data.circuitOrTrail.map((id) => vertexLabelMap.get(id) || id).join(' → ')}
             </div>
           </div>
         </div>
       )}
-
-      {/* Educational Theorem Reference Box */}
-      <div className="p-4 rounded-xl bg-slate-900/40 border border-slate-800 text-xs text-slate-400 flex flex-col gap-2">
-        <div className="flex items-center gap-1.5 font-bold text-slate-200">
-          <HelpCircle className="w-4 h-4 text-indigo-400" />
-          <span>Euler&apos;s Theorem (1736 - Königsberg Bridges):</span>
-        </div>
-        <ul className="list-disc list-inside text-[11px] leading-relaxed space-y-1">
-          <li>
-            <strong>Euler Circuit:</strong> A closed walk that visits every edge of a graph
-            exactly once and returns to the starting vertex. Exists in a connected graph if
-            and only if <em>every vertex has an even degree</em> (0 odd vertices).
-          </li>
-          <li>
-            <strong>Euler Trail:</strong> An open walk that visits every edge exactly once.
-            Exists if and only if <em>exactly two vertices have an odd degree</em> (the trail
-            must start at one and end at the other).
-          </li>
-          <li>
-            <strong>Hierholzer&apos;s Algorithm:</strong> Efficiently finds an Eulerian
-            path in O(|E|) time by iteratively constructing sub-circuits and merging them.
-          </li>
-          <li>
-            <strong>Connectivity Convention:</strong> Isolated vertices are ignored; some textbooks require the whole graph to be connected.
-          </li>
-        </ul>
-      </div>
     </div>
   );
 }

@@ -15,23 +15,21 @@ graph TD
         WebView --> StaticBundle
     end
 
-    subgraph CoreFrontend["Frontend & Logic Engine"]
-        UI[Workspace UI / Dynamic Tabs] --> |Input String| Engine[Boolean Engine Facade]
-        Engine --> Tokenizer[Tokenizer]
-        Tokenizer --> Parser[Recursive Descent AST Parser]
-        Parser --> Evaluator[AST Evaluator]
-        Parser --> TT[Truth Table Generator]
-        Parser --> KMap[K-Map Solver]
-        Parser --> Simp[Boolean Simplifier]
-        Parser --> Circuit[SVG Circuit Builder]
-        Engine --> Analysis[Logic Analysis Engine]
-        Evaluator --> Store[Zustand State Store]
-        TT --> Store
-        KMap --> Store
-        Simp --> Store
-        Circuit --> Store
-        Analysis --> Store
-        Store --> |Reactive State| UI
+    subgraph CoreFrontend["Frontend & Modules"]
+        subgraph LogicStudio["Digital Logic Studio (/workspace)"]
+            UI[Workspace UI] --> Engine[Boolean Engine]
+            Engine --> TT[Truth Table]
+            Engine --> KMap[K-Map Solver]
+            Engine --> Circuit[SVG Circuit Builder]
+            Engine --> Simp[Boolean Simplifier]
+        end
+
+        subgraph GraphStudio["Graph Theory Laboratory (/graph-theory)"]
+            GLStore[Zustand useGraphLab] --> Canvas[Native SVG Canvas]
+            GLStore --> GLTabs[9 Syllabus Topic Panels]
+            GLTabs --> AlgCore[Pure Algorithmic Core]
+            AlgCore --> GLStore
+        end
     end
 
     StaticBundle --> CoreFrontend
@@ -45,11 +43,29 @@ graph TD
 * `src/lib/truth-table/`: Computes truth table matrices for $2^N$ variable assignments.
 * `src/lib/kmap/`: Builds Gray-code aligned Karnaugh Maps (for up to 4 variables) and solves minterm prime implicant covers.
 * `src/lib/simplifier/`: Transforms ASTs step-by-step while recording applied Boolean laws.
-* `src/hooks/useBooleanStudio.ts`: Zustand store managing interactive signal states and analysis results.
+* `src/hooks/useBooleanStudio.ts`: Zustand store managing interactive signal states and digital logic analysis results.
+* `src/hooks/useGraphLab.ts`: Centralized Zustand store managing single graph state `{ vertices, edges, isDirected }`, undo stack, presets, and active highlights.
+* `src/lib/graph-theory/`: Pure algorithm functions (zero UI/DOM dependencies) returning `AlgorithmOutput<T>` (`{ result, explanation, highlight, steps }`):
+  * `graph-model.ts`: Vertex/edge creation, deletion, label reuse (A-Z, A1-Z1), and directed/undirected conversion.
+  * `matrix-builders.ts`: Adjacency/Incidence matrices, Handshaking lemma, matrix power $(A)^k$ walk counter.
+  * `connectivity.ts`: Degrees, connected/strongly connected components, BFS shortest path, cycle detection.
+  * `walks-cycles.ts`: Interactive Walk vs Trail vs Path vs Circuit vs Cycle classification.
+  * `euler.ts`: Undirected & directed Hierholzer's traversal algorithm with step frames.
+  * `hamiltonian.ts`: Backtracking cycle/path solver with Dirac/Ore checks.
+  * `tree.ts`: Tree triad check ({Connected, Acyclic, $|E| = |V| - 1$}), cycle witness, BFS spanning tree generator.
+  * `bipartite.ts`: BFS 2-colouring bipartite detector and Kőnig odd cycle witness extractor.
+  * `matching.ts`: Augmenting path bipartite matching and constructive Hall's condition failure witness subset $S$.
+  * `planar-bound.ts`: General/bipartite edge bounds, Euler polyhedral formula, non-planarity proofs for $K_5$ and $K_{3,3}$.
+  * `coloring.ts`: Welsh-Powell greedy coloring, exact chromatic number $\chi(G)$ ($n \le 10$), clique/degree bounds, manual coloring conflict detector.
+* `src/components/GraphLab/`:
+  * `GraphLabView.tsx`: 2-column desktop split layout (Left ~60% Canvas + Toolbar, Right ~40% Active Panel) stacking on mobile.
+  * `GraphCanvas.tsx`: Native SVG canvas with pointer events, smooth dragging, ghost line to cursor in `add-edge` mode, arrowheads for directed mode, and active highlight synchronization.
+  * `Toolbar.tsx`: Top toolbar with Select/Move, Add Vertex, Add Edge, Delete, Directed/Undirected toggle, Presets, Undo, Clear, and $V = X \mid E = Y$ count badge.
+  * 9 dedicated topic panels: `RepresentationsPanel.tsx`, `DegreeWalksPanel.tsx`, `EulerPanel.tsx`, `HamiltonianPanel.tsx`, `TreePanel.tsx`, `BipartitePanel.tsx`, `MatchingPanel.tsx`, `PlanarPanel.tsx`, `ColoringPanel.tsx`.
 
-## 🔄 Data Flow
-1. User enters or modifies a Boolean expression in `<ExpressionInput />`.
-2. `analyzeBooleanExpression` parses the expression and generates visualization datasets.
-3. The user switches between result tabs (`Truth Table`, `Logic Circuit`, `Karnaugh Map`, `Simplification`, `Logic Analysis`). Dynamic imports ensure only the active tab's chunk is rendered.
-4. Clicking input badges in the circuit or control bar updates `activeInputValues` in Zustand, recalculating active wire signal glow and truth table row highlights instantaneously.
-5. In desktop mode, all asset requests are loaded directly from local application resources without any local web server or open TCP ports.
+## 🔄 Graph Theory Data Flow
+1. User interacts with the canvas or toolbar (e.g., adding/moving vertices, connecting edges, toggling directed mode, loading a preset).
+2. The central Zustand store (`useGraphLab`) updates `graph: Graph` and pushes previous state to `history: Graph[]` for undo capability.
+3. The active topic panel calls its respective pure algorithm in `src/lib/graph-theory/` to compute results, plain-English explanations, and highlights.
+4. The panel updates `activeHighlight` in the store (or per-step highlight during step player playback).
+5. `<GraphCanvas />` reactively renders the updated graph, applying node/edge color overlays and stroke highlights corresponding to the active analysis without duplicating algorithmic logic.

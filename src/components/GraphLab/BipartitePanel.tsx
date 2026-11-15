@@ -1,13 +1,24 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import { useGraphLab } from '@/hooks/useGraphLab';
 import { checkBipartite } from '@/lib/graph-theory/bipartite';
-import { CheckCircle2, AlertOctagon, HelpCircle, ArrowRight } from 'lucide-react';
+import {
+  CheckCircle2,
+  XCircle,
+  RotateCcw,
+  Sparkles,
+} from 'lucide-react';
 
 export function BipartitePanel() {
-  const { graph } = useGraphLab();
-  const result = useMemo(() => checkBipartite(graph), [graph]);
+  const { graph, setActiveHighlight, loadPreset } = useGraphLab();
+
+  const output = useMemo(() => checkBipartite(graph), [graph]);
+  const data = output.result;
+
+  useEffect(() => {
+    setActiveHighlight(output.highlight);
+  }, [output.highlight, setActiveHighlight]);
 
   const vertexLabelMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -16,144 +27,137 @@ export function BipartitePanel() {
   }, [graph.vertices]);
 
   return (
-    <div className="flex flex-col gap-6">
-      {/* Result Status Banner */}
+    <div className="flex flex-col gap-6 text-slate-200">
+      {/* Header & Definition */}
+      <div className="flex flex-col gap-2 pb-4 border-b border-slate-800">
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <span className="text-xs font-bold uppercase tracking-wider text-indigo-400">
+            Syllabus Unit 6 • Topic 6
+          </span>
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => loadPreset('k_mn', 3, 3)}
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-600/20 text-indigo-300 hover:bg-indigo-600/30 border border-indigo-500/30 text-xs font-medium transition-colors"
+            >
+              <RotateCcw className="w-3 h-3" />
+              <span>Try K₃,₃</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => loadPreset('cycle')}
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium transition-colors"
+            >
+              <span>Cycle (C₅)</span>
+            </button>
+          </div>
+        </div>
+        <h2 className="text-lg font-bold text-white">Bipartite Graphs &amp; 2-Colouring</h2>
+        <p className="text-xs text-slate-400 leading-relaxed">
+          A graph is <strong>Bipartite</strong> (or 2-colourable) if its vertices can be partitioned into two
+          independent sets <code className="text-indigo-300">Set A</code> and{' '}
+          <code className="text-emerald-300">Set B</code> such that every edge connects a vertex in A to a vertex in B.
+        </p>
+      </div>
+
+      {/* Main Status Banner */}
       <div
-        className={`p-5 rounded-2xl border flex items-center justify-between flex-wrap gap-4 ${
-          result.isBipartite
+        className={`p-4 rounded-xl border flex items-center justify-between flex-wrap gap-3 ${
+          data.isBipartite
             ? 'bg-emerald-950/20 border-emerald-500/30'
             : 'bg-rose-950/20 border-rose-500/30'
         }`}
       >
         <div className="flex items-center gap-3">
-          {result.isBipartite ? (
-            <CheckCircle2 className="w-6 h-6 text-emerald-400" />
+          {data.isBipartite ? (
+            <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
           ) : (
-            <AlertOctagon className="w-6 h-6 text-rose-400" />
+            <XCircle className="w-5 h-5 text-rose-400 shrink-0" />
           )}
-
           <div className="flex flex-col">
-            <h3 className="text-base font-bold text-white">
-              {result.isBipartite
-                ? 'Graph is Bipartite (2-Colourable)'
-                : 'Graph is NOT Bipartite'}
+            <h3 className="text-sm font-bold text-white">
+              {data.isBipartite ? 'Graph is BIPARTITE (2-Colourable)' : 'Graph is NOT Bipartite'}
             </h3>
-            <span className="text-xs text-slate-300 max-w-xl leading-relaxed">
-              {result.explanation}
+            <span className="text-xs text-slate-300 leading-relaxed">
+              {output.explanation}
             </span>
           </div>
         </div>
-
-        <div className="flex items-center gap-2">
-          <span
-            className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
-              result.isBipartite
-                ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                : 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
-            }`}
-          >
-            {result.isBipartite ? '✓ 2-Colourable' : '✕ Contains Odd Cycle'}
-          </span>
-        </div>
       </div>
 
-      {/* Partitions or Odd Cycle Certificate */}
-      {result.isBipartite ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {/* Partition Set A */}
-          <div className="p-4 rounded-xl bg-indigo-950/20 border border-indigo-500/30 flex flex-col gap-2.5">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="w-3 h-3 rounded-full bg-indigo-500" />
-                <span className="text-sm font-bold text-indigo-300">
-                  Partition Set A (Color 0)
-                </span>
-              </div>
-              <span className="text-xs font-mono text-slate-400">
-                {result.partitionA.length} vertices
-              </span>
-            </div>
-            <div className="flex items-center gap-1.5 flex-wrap pt-1">
-              {result.partitionA.map((id) => (
-                <span
-                  key={id}
-                  className="px-2.5 py-1 rounded-lg text-xs font-mono font-bold bg-indigo-900/40 text-indigo-200 border border-indigo-500/40"
-                >
-                  {vertexLabelMap.get(id) || id}
-                </span>
-              ))}
-            </div>
-          </div>
+      {/* Kőnig's Theorem Card */}
+      <div className="p-3.5 rounded-xl bg-slate-900/40 border border-slate-800 text-xs flex flex-col gap-1.5">
+        <span className="font-semibold text-white">Kőnig&apos;s Theorem (1936):</span>
+        <p className="text-slate-300 leading-relaxed">
+          A graph is bipartite if and only if it contains <strong>NO odd cycle</strong>.
+          {data.isBipartite
+            ? ' No odd cycles exist in this graph, confirming bipartiteness.'
+            : ' An odd cycle was detected and highlighted on the canvas.'}
+        </p>
+      </div>
 
-          {/* Partition Set B */}
-          <div className="p-4 rounded-xl bg-emerald-950/20 border border-emerald-500/30 flex flex-col gap-2.5">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="w-3 h-3 rounded-full bg-emerald-500" />
-                <span className="text-sm font-bold text-emerald-300">
-                  Partition Set B (Color 1)
+      {/* Partition Sets if Bipartite */}
+      {data.isBipartite ? (
+        <div className="flex flex-col gap-3">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+            2-Colourable Partitions
+          </h3>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {/* Set A */}
+            <div className="p-4 rounded-xl bg-indigo-950/20 border border-indigo-500/40 flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-sm text-indigo-300 flex items-center gap-2">
+                  <span className="w-3 h-3 rounded-full bg-indigo-500 inline-block" />
+                  <span>Partition Set A</span>
+                </span>
+                <span className="text-xs font-mono font-bold text-white px-2 py-0.5 rounded bg-slate-950">
+                  |A| = {data.partitionA.length}
                 </span>
               </div>
-              <span className="text-xs font-mono text-slate-400">
-                {result.partitionB.length} vertices
-              </span>
+              <div className="font-mono text-xs text-slate-300 break-words bg-slate-950/60 p-2.5 rounded-lg border border-slate-800">
+                {data.partitionA.length > 0
+                  ? '{ ' + data.partitionA.map((id) => vertexLabelMap.get(id) || id).join(', ') + ' }'
+                  : 'Empty'}
+              </div>
             </div>
-            <div className="flex items-center gap-1.5 flex-wrap pt-1">
-              {result.partitionB.map((id) => (
-                <span
-                  key={id}
-                  className="px-2.5 py-1 rounded-lg text-xs font-mono font-bold bg-emerald-900/40 text-emerald-200 border border-emerald-500/40"
-                >
-                  {vertexLabelMap.get(id) || id}
+
+            {/* Set B */}
+            <div className="p-4 rounded-xl bg-emerald-950/20 border border-emerald-500/40 flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-sm text-emerald-300 flex items-center gap-2">
+                  <span className="w-3 h-3 rounded-full bg-emerald-500 inline-block" />
+                  <span>Partition Set B</span>
                 </span>
-              ))}
+                <span className="text-xs font-mono font-bold text-white px-2 py-0.5 rounded bg-slate-950">
+                  |B| = {data.partitionB.length}
+                </span>
+              </div>
+              <div className="font-mono text-xs text-slate-300 break-words bg-slate-950/60 p-2.5 rounded-lg border border-slate-800">
+                {data.partitionB.length > 0
+                  ? '{ ' + data.partitionB.map((id) => vertexLabelMap.get(id) || id).join(', ') + ' }'
+                  : 'Empty'}
+              </div>
             </div>
           </div>
         </div>
       ) : (
-        /* Non-Bipartite Proof: Odd Cycle Certificate */
-        result.oddCycle && (
-          <div className="p-5 rounded-2xl glass-panel border border-rose-500/30 bg-rose-950/20 flex flex-col gap-3">
-            <div className="flex items-center justify-between">
-              <span className="text-xs uppercase font-bold text-rose-300 tracking-wider">
-                Non-Bipartiteness Proof: Odd Cycle
-              </span>
-              <span className="text-xs font-mono text-rose-400">
-                Cycle Length: {result.oddCycle.length - 1} (Odd)
-              </span>
+        /* Odd Cycle Witness Card */
+        data.oddCycle && (
+          <div className="p-4 rounded-xl bg-rose-950/30 border border-rose-500/40 flex flex-col gap-2">
+            <span className="font-bold text-sm text-rose-300 flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-rose-400" />
+              <span>Odd Cycle Witness (Length {data.oddCycle.length - 1}):</span>
+            </span>
+            <div className="font-mono text-xs font-bold text-rose-200 bg-slate-950 p-2.5 rounded-lg border border-slate-800">
+              {data.oddCycle.map((id) => vertexLabelMap.get(id) || id).join(' → ')}
             </div>
-            <p className="text-xs text-slate-300">
-              The following cycle of odd length was found by BFS. The edges and vertices
-              of this odd cycle are highlighted in rose on the canvas:
+            <p className="text-[11px] text-slate-400">
+              Since an odd cycle cannot be 2-coloured without two adjacent vertices sharing the same colour, the entire graph is not bipartite.
             </p>
-            <div className="flex items-center gap-2 flex-wrap font-mono text-xs p-3 rounded-xl bg-slate-950/70 border border-rose-500/30">
-              {result.oddCycle.map((vId, idx) => (
-                <React.Fragment key={idx}>
-                  <span className="px-2.5 py-1 rounded-lg font-bold bg-rose-500/20 text-rose-200 border border-rose-500/40">
-                    {vertexLabelMap.get(vId) || vId}
-                  </span>
-                  {idx < result.oddCycle!.length - 1 && (
-                    <ArrowRight className="w-3.5 h-3.5 text-rose-400" />
-                  )}
-                </React.Fragment>
-              ))}
-            </div>
           </div>
         )
       )}
-
-      {/* Educational Theorem Note */}
-      <div className="p-4 rounded-xl bg-slate-900/40 border border-slate-800 text-xs text-slate-400 flex flex-col gap-2">
-        <div className="flex items-center gap-1.5 font-bold text-slate-200">
-          <HelpCircle className="w-4 h-4 text-indigo-400" />
-          <span>König&apos;s Theorem (1936):</span>
-        </div>
-        <p className="text-[11px] leading-relaxed">
-          A graph is <strong>bipartite</strong> (and thus 2-colourable) if and only if it
-          contains <strong>no odd cycles</strong>. If an odd cycle exists, it is impossible to
-          alternate two colors without forcing two adjacent vertices to share the same color.
-        </p>
-      </div>
     </div>
   );
 }

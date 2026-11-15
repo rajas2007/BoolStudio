@@ -1,4 +1,4 @@
-import { Graph, Vertex, Edge, GraphProperties } from '../types/graph';
+import { Graph, Vertex, Edge } from '../types/graph';
 
 export function createEmptyGraph(isDirected = false): Graph {
   return {
@@ -8,66 +8,44 @@ export function createEmptyGraph(isDirected = false): Graph {
   };
 }
 
-export function computeGraphProperties(graph: Graph): GraphProperties {
-  const order = graph.vertices.length;
-  const size = graph.edges.length;
+/**
+ * Returns the lowest alphabetically unused label (A, B, C... Z, then A1, B1...).
+ * Reuses letters from deleted vertices.
+ */
+export function getNextAvailableLabel(vertices: Vertex[]): string {
+  const existingLabels = new Set(vertices.map((v) => v.label.toUpperCase()));
+  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
-  const degrees: Record<string, number> = {};
-  const inDegrees: Record<string, number> = {};
-  const outDegrees: Record<string, number> = {};
-
-  for (const v of graph.vertices) {
-    degrees[v.id] = 0;
-    inDegrees[v.id] = 0;
-    outDegrees[v.id] = 0;
-  }
-
-  for (const e of graph.edges) {
-    if (graph.isDirected) {
-      if (outDegrees[e.source] !== undefined) outDegrees[e.source]++;
-      if (inDegrees[e.target] !== undefined) inDegrees[e.target]++;
-    } else {
-      if (degrees[e.source] !== undefined) degrees[e.source]++;
-      if (degrees[e.target] !== undefined) degrees[e.target]++;
+  // First pass: single letters A-Z
+  for (let i = 0; i < alphabet.length; i++) {
+    const letter = alphabet[i];
+    if (!existingLabels.has(letter)) {
+      return letter;
     }
   }
 
-  if (graph.isDirected) {
-    for (const v of graph.vertices) {
-      degrees[v.id] = (inDegrees[v.id] || 0) + (outDegrees[v.id] || 0);
+  // Second pass: A1, B1... A2, B2...
+  let suffix = 1;
+  while (suffix < 100) {
+    for (let i = 0; i < alphabet.length; i++) {
+      const candidate = `${alphabet[i]}${suffix}`;
+      if (!existingLabels.has(candidate)) {
+        return candidate;
+      }
     }
+    suffix++;
   }
 
-  const sumOfDegrees = Object.values(degrees).reduce((acc, d) => acc + d, 0);
-
-  let handshakeValid = false;
-  let handshakeFormula = '';
-
-  if (graph.isDirected) {
-    const sumIn = Object.values(inDegrees).reduce((acc, d) => acc + d, 0);
-    const sumOut = Object.values(outDegrees).reduce((acc, d) => acc + d, 0);
-    handshakeValid = sumIn === size && sumOut === size;
-    handshakeFormula = `Σ in-deg(v) = ${sumIn}, Σ out-deg(v) = ${sumOut}, |E| = ${size} (Σ in-deg = Σ out-deg = |E|)`;
-  } else {
-    handshakeValid = sumOfDegrees === 2 * size;
-    handshakeFormula = `Σ deg(v) = ${sumOfDegrees} = 2 × |E| = 2 × ${size} = ${2 * size}`;
-  }
-
-  return {
-    order,
-    size,
-    degrees,
-    inDegrees,
-    outDegrees,
-    sumOfDegrees,
-    handshakeValid,
-    handshakeFormula,
-  };
+  return `V${vertices.length + 1}`;
 }
 
-export function canAddEdge(graph: Graph, sourceId: string, targetId: string): { valid: boolean; reason?: string } {
+export function canAddEdge(
+  graph: Graph,
+  sourceId: string,
+  targetId: string
+): { valid: boolean; reason?: string } {
   if (sourceId === targetId) {
-    return { valid: false, reason: 'Self-loops are disallowed in simple graphs.' };
+    return { valid: false, reason: 'Self-loops are not permitted in simple graphs.' };
   }
 
   const vertexIds = new Set(graph.vertices.map((v) => v.id));
@@ -86,16 +64,24 @@ export function canAddEdge(graph: Graph, sourceId: string, targetId: string): { 
   });
 
   if (existing) {
-    return { valid: false, reason: 'Parallel/multi-edges are disallowed in simple graphs.' };
+    return { valid: false, reason: 'Parallel edges already exist between these vertices in a simple graph.' };
   }
 
   return { valid: true };
 }
 
-export function addVertex(graph: Graph, vertex: Vertex): Graph {
+export function addVertex(graph: Graph, x: number, y: number, customLabel?: string): Graph {
+  const label = customLabel || getNextAvailableLabel(graph.vertices);
+  const newVertex: Vertex = {
+    id: `v_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+    label,
+    x,
+    y,
+  };
+
   return {
     ...graph,
-    vertices: [...graph.vertices, vertex],
+    vertices: [...graph.vertices, newVertex],
   };
 }
 
@@ -107,14 +93,21 @@ export function removeVertex(graph: Graph, vertexId: string): Graph {
   };
 }
 
-export function addEdge(graph: Graph, edge: Edge): Graph {
-  const check = canAddEdge(graph, edge.source, edge.target);
+export function addEdge(graph: Graph, sourceId: string, targetId: string): Graph {
+  const check = canAddEdge(graph, sourceId, targetId);
   if (!check.valid) {
     return graph;
   }
+
+  const newEdge: Edge = {
+    id: `e_${sourceId}_${targetId}_${Date.now()}`,
+    source: sourceId,
+    target: targetId,
+  };
+
   return {
     ...graph,
-    edges: [...graph.edges, edge],
+    edges: [...graph.edges, newEdge],
   };
 }
 
@@ -125,10 +118,17 @@ export function removeEdge(graph: Graph, edgeId: string): Graph {
   };
 }
 
+export function moveVertex(graph: Graph, vertexId: string, x: number, y: number): Graph {
+  return {
+    ...graph,
+    vertices: graph.vertices.map((v) => (v.id === vertexId ? { ...v, x, y } : v)),
+  };
+}
+
 export function toggleDirected(graph: Graph): Graph {
-  // When converting to undirected, deduplicate any reverse edges
   const newEdges: Edge[] = [];
   if (graph.isDirected) {
+    // When converting directed -> undirected, eliminate opposite parallel arcs
     for (const e of graph.edges) {
       const exists = newEdges.some(
         (existing) =>
@@ -140,6 +140,7 @@ export function toggleDirected(graph: Graph): Graph {
       }
     }
   } else {
+    // Undirected -> directed: keep edges as directed arcs
     newEdges.push(...graph.edges);
   }
 

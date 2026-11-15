@@ -1,108 +1,133 @@
-import { Graph, TreeResult } from '../types/graph';
-import { computeConnectedComponents } from './connectivity';
+import { Graph, TreeResult, AlgorithmOutput } from '../types/graph';
+import { computeDegreesAndConnectivity } from './connectivity';
 
-export function analyzeTreeProperties(graph: Graph): TreeResult {
+export function analyzeTreeProperties(graph: Graph): AlgorithmOutput<TreeResult> {
   const order = graph.vertices.length;
   const size = graph.edges.length;
 
-  if (order === 0) {
-    return {
-      isTree: false,
-      isConnected: false,
-      isAcyclic: true,
-      order: 0,
-      size: 0,
-      satisfiesSizeCondition: false,
-      failedConditions: ['Order condition: A tree must have at least 1 vertex.'],
-      explanation: 'The empty graph has order 0 and is not a tree.',
-    };
-  }
+  const conn = computeDegreesAndConnectivity(graph);
+  const isConnected = conn.result.components.count === 1;
 
-  if (order === 1) {
-    const isTree = size === 0;
-    return {
-      isTree,
-      isConnected: true,
-      isAcyclic: true,
-      order: 1,
-      size,
-      satisfiesSizeCondition: size === 0,
-      failedConditions: isTree ? [] : ['Size condition: Single vertex tree must have 0 edges.'],
-      explanation: isTree
-        ? 'A single vertex with no edges is a trivial tree of order 1.'
-        : 'Single vertex has loops or parallel edges, so it is not a simple tree.',
-    };
-  }
+  // Degrees and leaves
+  const degrees = conn.result.degrees;
+  const leaves = graph.vertices.filter((v) => degrees[v.id] === 1).map((v) => v.id);
+  const degreeSequence = Object.values(degrees).sort((a, b) => b - a);
 
-  // Check connectivity
-  const components = computeConnectedComponents(graph);
-  const isConnected = components.count === 1;
-
-  // Check acyclicity using undirected DFS
-  const adj = new Map<string, string[]>();
+  // Cycle detection with witness extraction
+  const adj = new Map<string, { target: string; edgeId: string }[]>();
   for (const v of graph.vertices) adj.set(v.id, []);
   for (const e of graph.edges) {
-    adj.get(e.source)?.push(e.target);
-    adj.get(e.target)?.push(e.source);
+    adj.get(e.source)?.push({ target: e.target, edgeId: e.id });
+    adj.get(e.target)?.push({ target: e.source, edgeId: e.id });
   }
 
   const visited = new Set<string>();
-  let hasCycle = false;
+  const parent = new Map<string, string | null>();
+  const path: string[] = [];
+  let cycleWitness: string[] | undefined;
+  const cycleEdges: string[] = [];
 
-  function dfs(u: string, parent: string | null): boolean {
+  function dfsFindCycle(u: string, p: string | null): boolean {
     visited.add(u);
-    for (const v of adj.get(u) || []) {
-      if (!visited.has(v)) {
-        if (dfs(v, u)) return true;
-      } else if (v !== parent) {
-        // Visited neighbor that is not parent => cycle!
-        return true;
+    parent.set(u, p);
+    path.push(u);
+
+    for (const edgeRef of adj.get(u) || []) {
+      const v = edgeRef.target;
+      if (v === p) continue;
+      if (visited.has(v)) {
+        // Cycle detected
+        const cycleStartIndex = path.indexOf(v);
+        if (cycleStartIndex !== -1) {
+          cycleWitness = path.slice(cycleStartIndex);
+          cycleWitness.push(v);
+          return true;
+        }
+      } else {
+        if (dfsFindCycle(v, u)) return true;
       }
     }
+    path.pop();
     return false;
   }
 
   for (const v of graph.vertices) {
     if (!visited.has(v.id)) {
-      if (dfs(v.id, null)) {
-        hasCycle = true;
-        break;
+      if (dfsFindCycle(v.id, null)) break;
+    }
+  }
+
+  if (cycleWitness && cycleWitness.length > 2) {
+    for (let i = 0; i < cycleWitness.length - 1; i++) {
+      const u = cycleWitness[i];
+      const v = cycleWitness[i + 1];
+      const e = graph.edges.find((edge) =>
+        (edge.source === u && edge.target === v) || (edge.source === v && edge.target === u)
+      );
+      if (e) cycleEdges.push(e.id);
+    }
+  }
+
+  const isAcyclic = cycleWitness === undefined;
+  const satisfiesSizeCondition = order > 0 && size === order - 1;
+  const isTree = order > 0 && isConnected && isAcyclic && satisfiesSizeCondition;
+
+  // BFS Spanning Tree if connected
+  const spanningTreeEdges: string[] = [];
+  if (isConnected && order > 0) {
+    const spanVisited = new Set<string>([graph.vertices[0].id]);
+    const queue = [graph.vertices[0].id];
+    while (queue.length > 0) {
+      const curr = queue.shift()!;
+      for (const edgeRef of adj.get(curr) || []) {
+        if (!spanVisited.has(edgeRef.target)) {
+          spanVisited.add(edgeRef.target);
+          spanningTreeEdges.push(edgeRef.edgeId);
+          queue.push(edgeRef.target);
+        }
       }
     }
   }
 
-  const isAcyclic = !hasCycle;
-  const satisfiesSizeCondition = size === order - 1;
-  const isTree = isConnected && isAcyclic && satisfiesSizeCondition;
-
   const failedConditions: string[] = [];
   if (!isConnected) {
-    failedConditions.push(`Connectivity failed: Graph has ${components.count} disconnected components (a tree must be connected).`);
+    failedConditions.push(`Connectivity failed: Graph has ${conn.result.components.count} separated components.`);
   }
   if (!isAcyclic) {
-    failedConditions.push('Acyclicity failed: Graph contains one or more cycles (a tree must be cycle-free).');
+    failedConditions.push('Acyclicity failed: Graph contains one or more cycles.');
   }
   if (!satisfiesSizeCondition) {
-    failedConditions.push(
-      `Size formula failed: |E| = ${size}, but a tree requires |E| = |V| - 1 = ${order} - 1 = ${order - 1}.`
-    );
+    failedConditions.push(`Size formula failed: |E| = ${size}, but a tree requires |E| = |V| - 1 = ${order - 1}.`);
   }
 
   let explanation = '';
   if (isTree) {
-    explanation = `The graph is a TREE: It is connected, contains no cycles, and satisfies the fundamental tree theorem |E| = |V| - 1 (${size} = ${order} - 1). Every pair of vertices has a unique simple path between them.`;
+    explanation = `The graph is a TREE: Connected, cycle-free, and satisfies |E| = |V| - 1 (${size} = ${order} - 1). Leaves: ${leaves.length}.`;
   } else {
-    explanation = `The graph is NOT a tree because it fails ${failedConditions.length} fundamental condition(s): ${failedConditions.join(' ')}`;
+    explanation = `Not a tree: Fails ${failedConditions.length} tree condition(s). ${failedConditions[0]}`;
   }
 
-  return {
+  const res: TreeResult = {
     isTree,
     isConnected,
     isAcyclic,
+    satisfiesSizeCondition,
     order,
     size,
-    satisfiesSizeCondition,
+    leaves,
+    degreeSequence,
+    cycleWitness,
+    spanningTreeEdges,
     failedConditions,
     explanation,
+  };
+
+  return {
+    result: res,
+    explanation,
+    highlight: {
+      vertices: cycleWitness || (isTree ? leaves : []),
+      edges: cycleEdges.length > 0 ? cycleEdges : (isTree ? spanningTreeEdges : []),
+    },
   };
 }

@@ -34,3 +34,20 @@ Use this document to log significant engineering and architectural decisions. Do
   3. No local HTTP server ports are opened in production, improving security and eliminating firewall prompts.
 * **Alternatives Considered**: Electron (too heavy, high RAM/installer bloat), PWA (lacks native window controls, desktop shortcuts, and NSIS installer packaging).
 * **Consequences**: Building the desktop application requires the Rust toolchain and MSVC build tools. Both web (`npm run dev`) and desktop (`npm run tauri:dev` / `npm run tauri:build`) workflows remain cleanly supported.
+
+---
+
+## [ADR-004] Unit 6 Graph Theory Laboratory Architecture
+* **Date**: 2026-11-15
+* **Status**: Approved
+* **Decision**: Structure the Graph Theory Laboratory (`/graph-theory`) into two strictly decoupled layers:
+  1. A pure TypeScript algorithmic core (`src/lib/graph-theory/`) with zero UI/DOM dependencies where every algorithm adheres to the `AlgorithmOutput<T>` contract: `{ result: T, explanation: string, highlight: HighlightState, steps?: StepInfo[] }`.
+  2. A reactive UI layer (`src/components/GraphLab/`) powered by a single centralized Zustand store (`src/hooks/useGraphLab.ts`) containing the active graph `{ vertices, edges, isDirected }`, undo stack, presets, and active highlights.
+  3. Native SVG canvas rendering with HTML5 pointer capture for smooth vertex dragging without jumps and dynamic cursor ghost lines when connecting edges in `add-edge` mode.
+  4. Desktop 2-column split layout (Left ~60% Canvas + Toolbar, Right ~40% Active Topic Panel) with 9 ordered syllabus tabs matching discrete mathematics Unit 6 curricula.
+* **Reason**: 
+  1. The previous implementation suffered from fragmented state across tabs, duplicate algorithm code in the canvas, and vertical layout jumping that forced excessive scrolling.
+  2. Decoupling pure algorithmic logic allows comprehensive headless unit testing (verified via an 11-test automated suite).
+  3. Zero new dependencies were required, maintaining full static export compatibility (`output: 'export'`) and strict Tauri offline CSP security.
+* **Alternatives Considered**: Bundling external graph libraries (e.g., Cytoscape.js, vis.js, D3 force simulations) — rejected due to heavy bundle overhead, non-compliance with Tauri offline CSP, and poor fit with educational discrete mathematics algorithms (e.g., Hall's Marriage Theorem, Hierholzer's, Dirac/Ore bounds).
+* **Consequences**: High rendering performance, zero external runtime bloat, and easily extensible syllabus topics following a standardized 5-step registration process.
